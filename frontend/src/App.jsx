@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import Upload from "./components/Upload.jsx";
 import PdfViewer from "./components/PdfViewer.jsx";
 import ResultsTable from "./components/ResultsTable.jsx";
+import MaterialTable from "./components/MaterialTable.jsx";
 import { uploadPdf } from "./api.js";
 
 export default function App() {
@@ -10,11 +11,14 @@ export default function App() {
 
   const [annotatedPdfUrl, setAnnotatedPdfUrl] = useState("");
   const [results, setResults] = useState([]);
+  const [materialResults, setMaterialResults] = useState([]);
+  const [backendMaterialFieldMissing, setBackendMaterialFieldMissing] = useState(false);
   const [bomAnnotationPositions, setBomAnnotationPositions] = useState([]);
   const [uploadedFileName, setUploadedFileName] = useState("");
 
   const [missingOnly, setMissingOnly] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [activeTab, setActiveTab] = useState("BOM"); // BOM | MATERIAL
 
   const yByItem = useMemo(() => {
     const map = new Map();
@@ -35,6 +39,8 @@ export default function App() {
     setError("");
     setLoading(true);
     setResults([]);
+    setMaterialResults([]);
+    setBackendMaterialFieldMissing(false);
     setBomAnnotationPositions([]);
     setSelectedItem(null);
     setAnnotatedPdfUrl("");
@@ -44,6 +50,9 @@ export default function App() {
       setAnnotatedPdfUrl(data.annotated_pdf_url);
       setResults(data.results || []);
       setBomAnnotationPositions(data.bom_annotation_positions || []);
+      const hasField = Object.prototype.hasOwnProperty.call(data, "material_results");
+      setBackendMaterialFieldMissing(!hasField);
+      setMaterialResults(Array.isArray(data.material_results) ? data.material_results : []);
     } catch (e) {
       const msg = e?.response?.data?.detail || e?.message || "Upload failed";
       setError(msg);
@@ -77,27 +86,31 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 justify-end">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-600">Legend</span>
-              <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-50 text-green-800 border border-green-200 text-xs">
-                ✔ FOUND ({counts.FOUND})
-              </span>
-              <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs">
-                ⚙ STANDARD ({counts.STANDARD})
-              </span>
-              <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-50 text-red-800 border border-red-200 text-xs">
-                ✖ MISSING ({counts.MISSING})
-              </span>
-            </div>
+            {activeTab === "BOM" ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-slate-600">Legend</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-50 text-green-800 border border-green-200 text-xs">
+                    ✔ FOUND ({counts.FOUND})
+                  </span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs">
+                    ⚙ STANDARD ({counts.STANDARD})
+                  </span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-50 text-red-800 border border-red-200 text-xs">
+                    ✖ MISSING ({counts.MISSING})
+                  </span>
+                </div>
 
-            <label className="flex items-center gap-2 text-sm text-slate-700 bg-white/70 backdrop-blur px-3 py-2 rounded-xl border border-slate-200">
-              <input
-                type="checkbox"
-                checked={missingOnly}
-                onChange={(e) => setMissingOnly(e.target.checked)}
-              />
-              Show only missing
-            </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 bg-white/70 backdrop-blur px-3 py-2 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={missingOnly}
+                    onChange={(e) => setMissingOnly(e.target.checked)}
+                  />
+                  Show only missing
+                </label>
+              </>
+            ) : null}
           </div>
         </div>
       </header>
@@ -119,16 +132,58 @@ export default function App() {
             />
           </div>
 
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-2 bg-white/70 backdrop-blur rounded-xl border border-slate-200 p-1">
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  activeTab === "BOM"
+                    ? "bg-slate-900 text-white"
+                    : "bg-transparent text-slate-700 hover:bg-slate-50"
+                }`}
+                onClick={() => {
+                  setActiveTab("BOM");
+                  setSelectedItem(null);
+                }}
+              >
+                BOM Validation
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  activeTab === "MATERIAL"
+                    ? "bg-slate-900 text-white"
+                    : "bg-transparent text-slate-700 hover:bg-slate-50"
+                }`}
+                onClick={() => {
+                  setActiveTab("MATERIAL");
+                  setSelectedItem(null);
+                }}
+              >
+                Material Validation
+              </button>
+            </div>
+          </div>
+
           <div className="flex-1 min-h-0 pb-4">
-            <ResultsTable
-              results={filteredResults}
-              allResults={results}
-              loading={loading}
-              error={error}
-              selectedItem={selectedItem}
-              onRowClick={(item) => setSelectedItem(item)}
-              annotatedPdfUrl={annotatedPdfUrl}
-            />
+            {activeTab === "BOM" ? (
+              <ResultsTable
+                results={filteredResults}
+                allResults={results}
+                loading={loading}
+                error={error}
+                selectedItem={selectedItem}
+                onRowClick={(item) => setSelectedItem(item)}
+                annotatedPdfUrl={annotatedPdfUrl}
+              />
+            ) : (
+              <MaterialTable
+                materialResults={materialResults}
+                loading={loading}
+                error={error}
+                backendMaterialFieldMissing={backendMaterialFieldMissing}
+              />
+            )}
           </div>
         </section>
       </main>

@@ -12,11 +12,39 @@ export default function PdfViewer({ annotatedPdfUrl, loading, scrollTarget }) {
   const containerRef = useRef(null);
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.1);
+  const [scale, setScale] = useState(1.0);
   const [pdfError, setPdfError] = useState("");
 
   const zoomLabel = useMemo(() => `${Math.round(scale * 100)}%`, [scale]);
   const documentOptions = useMemo(() => ({ useWorkerFetch: false }), []);
+
+  // If user manually zooms, we stop auto-fit until a new PDF is loaded.
+  const userOverrideRef = useRef(false);
+  const pageOriginalWidthRef = useRef(null);
+
+  const setScaleClamped = (nextScale) => {
+    const minScale = 0.6;
+    const maxScale = 2.2;
+    const clamped = Math.max(minScale, Math.min(maxScale, nextScale));
+    setScale((prev) => {
+      // Avoid re-render loops on ResizeObserver jitter.
+      if (Math.abs(prev - clamped) < 0.02) return prev;
+      return clamped;
+    });
+  };
+
+  const refitToContainerWidth = () => {
+    if (!containerRef.current) return;
+    if (userOverrideRef.current) return;
+    if (!pageOriginalWidthRef.current) return;
+
+    const containerWidth = containerRef.current.clientWidth;
+    if (!containerWidth || containerWidth <= 0) return;
+
+    // react-pdf applies `scale` as the viewport scale; widths scale approximately linearly.
+    const nextScale = containerWidth / pageOriginalWidthRef.current;
+    setScaleClamped(nextScale);
+  };
 
   useEffect(() => {
     if (!scrollTarget || !containerRef.current) return;
@@ -45,12 +73,38 @@ export default function PdfViewer({ annotatedPdfUrl, loading, scrollTarget }) {
   useEffect(() => {
     setPdfError("");
     setPageNumber(1);
+    userOverrideRef.current = false;
+    setScale(1.0);
+    pageOriginalWidthRef.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annotatedPdfUrl]);
+
+  // Auto-fit to container width (responsive).
+  useEffect(() => {
+    if (!annotatedPdfUrl) return;
+    if (!containerRef.current) return;
+
+    refitToContainerWidth();
+
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => refitToContainerWidth());
+      ro.observe(containerRef.current);
+    } else {
+      const onResize = () => refitToContainerWidth();
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }
+
+    return () => {
+      if (ro) ro.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annotatedPdfUrl]);
 
   return (
-    <div className="flex flex-col min-h-0 h-full">
-      <div className="px-4 py-3 border-b border-slate-200 bg-white/70 backdrop-blur flex items-center justify-between gap-3">
+    <div className="flex flex-col min-h-0 max-h-[calc(100vh-120px)]">
+      <div className="px-4 py-2 border-b border-slate-200 bg-white/70 backdrop-blur flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-slate-900">PDF</div>
           <div className="text-xs text-slate-600">BOM validated against extracted text</div>
@@ -60,7 +114,10 @@ export default function PdfViewer({ annotatedPdfUrl, loading, scrollTarget }) {
           <button
             type="button"
             className="h-9 w-9 rounded-xl border border-slate-200 bg-white/80 hover:bg-white transition-colors text-slate-700"
-            onClick={() => setScale((s) => Math.max(0.6, s - 0.1))}
+            onClick={() => {
+              userOverrideRef.current = true;
+              setScale((s) => Math.max(0.6, s - 0.1));
+            }}
             disabled={!annotatedPdfUrl || loading}
           >
             -
@@ -69,7 +126,10 @@ export default function PdfViewer({ annotatedPdfUrl, loading, scrollTarget }) {
           <button
             type="button"
             className="h-9 w-9 rounded-xl border border-slate-200 bg-white/80 hover:bg-white transition-colors text-slate-700"
-            onClick={() => setScale((s) => Math.min(2.2, s + 0.1))}
+            onClick={() => {
+              userOverrideRef.current = true;
+              setScale((s) => Math.min(2.2, s + 0.1));
+            }}
             disabled={!annotatedPdfUrl || loading}
           >
             +
@@ -115,11 +175,19 @@ export default function PdfViewer({ annotatedPdfUrl, loading, scrollTarget }) {
           >
             {numPages ? (
               <Page
-                key={`page_${pageNumber}`}
+                key={`page_${pageNumber}_${annotatedPdfUrl}`}
                 pageNumber={pageNumber}
                 scale={scale}
                 renderTextLayer={false}
                 renderAnnotationLayer={false}
+                onLoadSuccess={(page) => {
+                  // Capture current page width so pages of different sizes
+                  // auto-fit correctly when switching pages.
+                  if (page?.originalWidth) {
+                    pageOriginalWidthRef.current = page.originalWidth;
+                    refitToContainerWidth();
+                  }
+                }}
               />
             ) : null}
           </Document>
@@ -131,7 +199,7 @@ export default function PdfViewer({ annotatedPdfUrl, loading, scrollTarget }) {
       </div>
 
       {annotatedPdfUrl && numPages ? (
-        <div className="px-4 py-3 border-t border-slate-200 bg-white/70 backdrop-blur flex items-center justify-between gap-3">
+        <div className="px-4 py-2 border-t border-slate-200 bg-white/70 backdrop-blur flex items-center justify-between gap-3">
           <div className="text-xs text-slate-600">
             Page <span className="font-semibold text-slate-800">{pageNumber}</span> of{" "}
             <span className="font-semibold text-slate-800">{numPages}</span>

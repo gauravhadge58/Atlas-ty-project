@@ -1,1 +1,12 @@
 venv
+outputs
+uploads
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
+*.pyzwz

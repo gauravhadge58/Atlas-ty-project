@@ -14,13 +14,15 @@ from fastapi.staticfiles import StaticFiles
 try:
     # When running from workspace root: `uvicorn backend.main:app`
     from backend.services.bom_extractor import extract_bom_from_page1
-    from backend.services.drawing_extractor import extract_parts_from_pages
+    from backend.services.drawing_extractor import extract_parts_from_pages, extract_part_materials_from_pages
     from backend.services.matcher import match_bom
+    from backend.services.material_validator import validate_materials_for_upload
 except ModuleNotFoundError:
     # When running from inside backend folder: `uvicorn main:app`
     from services.bom_extractor import extract_bom_from_page1
-    from services.drawing_extractor import extract_parts_from_pages
+    from services.drawing_extractor import extract_parts_from_pages, extract_part_materials_from_pages
     from services.matcher import match_bom
+    from services.material_validator import validate_materials_for_upload
 
 
 app = FastAPI(title="Drawing BOM Validator", version="1.0.0")
@@ -71,6 +73,8 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)) -> JSONResp
         bom_rows, annotation_context = extract_bom_from_page1(str(input_pdf_path))
         extracted_part_keys = extract_parts_from_pages(str(input_pdf_path), start_page_index=1)
         bom_results = match_bom(bom_rows=bom_rows, extracted_part_keys=extracted_part_keys)
+        part_details = extract_part_materials_from_pages(str(input_pdf_path), start_page_index=1)
+        material_validation = validate_materials_for_upload(part_keys=extracted_part_keys, part_details=part_details)
 
         # Annotation feature disabled:
         # Return the original PDF unchanged while keeping validation results.
@@ -86,6 +90,7 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)) -> JSONResp
                 "annotated_pdf_url": annotated_pdf_url,
                 "results": bom_results,
                 "bom_annotation_positions": bom_annotation_positions,
+                "material_results": material_validation.get("material_results", []),
             }
         )
     except Exception as e:

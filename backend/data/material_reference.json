@@ -1,0 +1,117 @@
+[
+  {
+    "edm": "EDM0001000",
+    "materials": ["S275J2H"],
+    "finish": ["BLACKODISING"],
+    "heat": null
+  },
+  {
+    "edm": "EDM0001005",
+    "materials": ["S275JR"],
+    "finish": ["BLACKODISING"],
+    "heat": null
+  },
+  {
+    "edm": "EDM0003007",
+    "materials": ["S355J0", "1.0553"],
+    "finish": ["BLACKODISING"],
+    "heat": null
+  },
+  {
+    "edm": "EDM000136",
+    "materials": ["EN8", "80M40", "SM45C"],
+    "finish": ["BLACKODISING"],
+    "heat": "60-70"
+  },
+  {
+    "edm": "EDM000315",
+    "materials": ["EN24", "81M40", "34CrNiMo6+QT"],
+    "finish": ["BLACKODISING"],
+    "heat": "80-100"
+  },
+  {
+    "edm": "EDM000203",
+    "materials": ["EN36", "15NiCr13"],
+    "finish": ["BLACKODISING"],
+    "heat": "55-85"
+  },
+  {
+    "edm": "EDM000005",
+    "materials": ["SS304", "X5CrNi18-10"],
+    "finish": ["POLISHED / NATURAL", "POLISHED", "NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM000027",
+    "materials": ["SS302"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM0000600",
+    "materials": ["AlSiMgMn T651", "EN AW6082-T651"],
+    "finish": ["CLEAR ANODISED"],
+    "heat": null
+  },
+  {
+    "edm": "EDM0000610",
+    "materials": ["AlZnMgCu1.5", "EN AW7075-T6"],
+    "finish": ["CLEAR ANODISED"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002346",
+    "materials": ["NYLON 6"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002210",
+    "materials": ["UHMW PE 1000"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002230",
+    "materials": ["ACETAL", "POM-C"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002205",
+    "materials": ["DERLIN", "POM-H"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002213",
+    "materials": ["VIRGIN PTFE"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002207",
+    "materials": ["PEEK"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM0000700",
+    "materials": ["COPPER CW004A"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM0000800",
+    "materials": ["BRASS CW614N"],
+    "finish": ["NATURAL"],
+    "heat": null
+  },
+  {
+    "edm": "EDM002001",
+    "materials": ["NEOPRENE"],
+    "finish": ["NATURAL"],
+    "heat": null
+  }
+]
+
