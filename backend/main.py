@@ -17,12 +17,24 @@ try:
     from backend.services.drawing_extractor import extract_parts_from_pages, extract_part_materials_from_pages
     from backend.services.matcher import match_bom
     from backend.services.material_validator import validate_materials_for_upload
+    from backend.services.material_db import (
+        get_reference_table,
+        save_reference_table,
+        reset_to_default,
+        parse_excel_to_rows,
+    )
 except ModuleNotFoundError:
     # When running from inside backend folder: `uvicorn main:app`
     from services.bom_extractor import extract_bom_from_page1
     from services.drawing_extractor import extract_parts_from_pages, extract_part_materials_from_pages
     from services.matcher import match_bom
     from services.material_validator import validate_materials_for_upload
+    from services.material_db import (
+        get_reference_table,
+        save_reference_table,
+        reset_to_default,
+        parse_excel_to_rows,
+    )
 
 
 app = FastAPI(title="Drawing BOM Validator", version="1.0.0")
@@ -102,6 +114,73 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)) -> JSONResp
             pass
         raise HTTPException(status_code=500, detail=f"PDF processing failed: {e}")
 
+
+# ---------------------------------------------------------------------------
+# Material Reference Table endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/material-reference")
+def get_material_reference() -> JSONResponse:
+    """Return the current active material reference table."""
+    try:
+        rows = get_reference_table()
+        return JSONResponse({"rows": rows})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load reference table: {e}")
+
+
+@app.post("/material-reference/upload-excel")
+async def upload_material_excel(file: UploadFile = File(...)) -> JSONResponse:
+    """
+    Accept an .xlsx file, parse it using the company material sheet format,
+    and return the parsed rows for the frontend to preview/edit before saving.
+    """
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail="Please upload an Excel file (.xlsx).")
+
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:  # 10 MB
+        raise HTTPException(status_code=413, detail="Excel file too large (max 10 MB).")
+
+    try:
+        rows = parse_excel_to_rows(content)
+        return JSONResponse({"rows": rows})
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse Excel file: {e}")
+
+
+@app.post("/material-reference/save")
+async def save_material_reference(request: Request) -> JSONResponse:
+    """
+    Persist an edited list of rows to the SQLite database.
+    Body: { "rows": [ { edm, materials, finish, heat, base_material, use_notes }, ... ] }
+    """
+    body = await request.json()
+    rows = body.get("rows")
+    if not isinstance(rows, list) or not rows:
+        raise HTTPException(status_code=400, detail="Body must contain a non-empty 'rows' list.")
+
+    try:
+        save_reference_table(rows)
+        return JSONResponse({"saved": len(rows)})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save reference table: {e}")
+
+
+@app.post("/material-reference/reset")
+def reset_material_reference() -> JSONResponse:
+    """Reset the active table back to the bundled factory defaults (from JSON)."""
+    try:
+        reset_to_default()
+        rows = get_reference_table()
+        return JSONResponse({"reset": True, "rows": rows})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reset reference table: {e}")
+
+
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

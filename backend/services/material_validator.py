@@ -9,6 +9,12 @@ from rapidfuzz import fuzz
 
 from .common import normalize_text
 
+try:
+    from .material_db import get_reference_table as _db_get_reference_table
+    _DB_AVAILABLE = True
+except Exception:
+    _DB_AVAILABLE = False
+
 
 _FINISH_SYNONYMS: Dict[str, str] = {
     # PDF often spells it like this.
@@ -25,6 +31,13 @@ _HEAT_KEYWORDS_RE = re.compile(r"\b(?:HARDENED|TEMPERED|CASE HARDENING)\b", flag
 
 
 def _load_reference_table() -> List[Dict[str, Any]]:
+    """Load from SQLite (preferred) or fall back to the bundled JSON."""
+    if _DB_AVAILABLE:
+        try:
+            return _db_get_reference_table()
+        except Exception:
+            pass
+    # Fallback: direct JSON read
     ref_path = Path(__file__).resolve().parent.parent / "data" / "material_reference.json"
     with ref_path.open("r", encoding="utf-8") as f:
         return json.load(f)
