@@ -1,394 +1,276 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-function StatusPill({ status }) {
-  const cfg = (() => {
-    if (status === "PASS") {
-      return "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-800 text-xs font-semibold border border-green-200";
-    }
-    if (status === "WARNING") {
-      return "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-800 text-xs font-semibold border border-yellow-200";
-    }
-    if (status === "FAIL") {
-      return "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-800 text-xs font-semibold border border-red-200";
-    }
-    return "inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200";
-  })();
-
-  const label = status || "MISSING";
-  const prefix =
-    status === "PASS" ? "✔" : status === "WARNING" ? "!" : status === "FAIL" ? "✖" : "•";
-
-  return (
-    <span className={cfg}>
-      <span aria-hidden>{prefix}</span> {label}
-    </span>
-  );
-}
-
-function worstStatus(statuses) {
-  const has = (s) => statuses.includes(s);
-  if (has("FAIL")) return "FAIL";
-  if (has("WARNING")) return "WARNING";
-  if (has("MISSING")) return "MISSING";
-  return "PASS";
-}
-
+// ── Helpers ────────────────────────────────────────────────────────────────
 function formatExpected(expected) {
   if (Array.isArray(expected)) return expected.filter(Boolean).join(", ");
   if (expected == null) return "";
   return String(expected);
 }
 
-function statusBg(status) {
-  if (status === "PASS") return "bg-green-50 border-green-200";
-  if (status === "WARNING") return "bg-yellow-50 border-yellow-200";
-  if (status === "FAIL") return "bg-red-50 border-red-200";
-  return "bg-slate-50 border-slate-200";
+function worstStatus(statuses) {
+  if (statuses.includes("FAIL"))    return "FAIL";
+  if (statuses.includes("WARNING")) return "WARNING";
+  if (statuses.includes("MISSING")) return "MISSING";
+  return "PASS";
 }
 
-function statusLeftBorder(status) {
-  if (status === "PASS") return "border-l-green-500";
-  if (status === "WARNING") return "border-l-yellow-500";
-  if (status === "FAIL") return "border-l-red-500";
-  return "border-l-slate-400";
+function statusChipClass(status) {
+  const map = { PASS: "pass", FAIL: "fail", WARNING: "warning", MISSING: "missing" };
+  return `status-chip status-chip--${map[status] || "missing"}`;
 }
 
-function statusLeftBorderRow(status) {
-  if (status === "PASS") return "border-l-green-400";
-  if (status === "WARNING") return "border-l-yellow-400";
-  if (status === "FAIL") return "border-l-red-400";
-  return "border-l-slate-300";
+function StatusChip({ status }) {
+  const labels = { PASS: "Pass", FAIL: "Fail", WARNING: "Warning", MISSING: "Missing" };
+  return (
+    <span className={statusChipClass(status)}>
+      <span className="status-chip__dot" />
+      {labels[status] || status}
+    </span>
+  );
 }
 
-function statusFieldText(status) {
-  if (status === "PASS") return "text-green-900";
-  if (status === "WARNING") return "text-yellow-900";
-  if (status === "FAIL") return "text-red-900";
-  return "text-slate-700";
+function leftAccentColor(status) {
+  if (status === "PASS")    return "var(--color-success)";
+  if (status === "WARNING") return "var(--color-warning)";
+  if (status === "FAIL")    return "var(--color-error)";
+  return "var(--color-text-tertiary)";
 }
 
-export default function MaterialTable({
-  materialResults,
-  loading,
-  error,
-  backendMaterialFieldMissing,
-}) {
-  const [filterMode, setFilterMode] = useState("ALL"); // ALL | FAIL | WARNING | MISSING
+// ── Icons ──────────────────────────────────────────────────────────────────
+function IconChevronRight() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  );
+}
+function IconChevronDown() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  );
+}
+function IconLayers() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
+    </svg>
+  );
+}
+function IconSearch() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  );
+}
+
+// ── Skeleton ───────────────────────────────────────────────────────────────
+function SkeletonRows() {
+  return (
+    <>
+      {[70, 85, 60].map((w, i) => (
+        <tr key={i}>
+          <td style={{ padding: "12px" }}><div className="skeleton" style={{ height: 14, width: "80%" }} /></td>
+          <td colSpan={3} style={{ padding: "12px" }}><div className="skeleton" style={{ height: 14, width: `${w}%` }} /></td>
+          <td style={{ padding: "12px" }}><div className="skeleton" style={{ height: 20, width: 64 }} /></td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────
+export default function MaterialTable({ materialResults, loading, error, backendMaterialFieldMissing }) {
+  const [filterMode, setFilterMode]     = useState("ALL");
   const [expandedParts, setExpandedParts] = useState(() => new Set());
-  const [searchTerm, setSearchTerm] = useState("");
-  const userAdjustedExpandedRef = useRef(false);
+  const [searchTerm, setSearchTerm]     = useState("");
+  const userAdjustedExpandedRef         = useRef(false);
 
   const parts = materialResults || [];
 
-  const fieldRowsByPart = useMemo(() => {
-    return parts.map((part) => {
+  const fieldRowsByPart = useMemo(() =>
+    parts.map((part) => {
       const rows = [
-        {
-          field: "Material",
-          expected: formatExpected(part?.material?.expected),
-          actual: part?.material?.actual || "",
-          status: part?.material?.status || "MISSING",
-          key: "material",
-        },
-        {
-          field: "Finish",
-          expected: formatExpected(part?.finish?.expected),
-          actual: part?.finish?.actual || "",
-          status: part?.finish?.status || "MISSING",
-          key: "finish",
-        },
-        {
-          field: "Heat",
-          expected: part?.heat?.expected || "NA",
-          actual: part?.heat?.actual_range || part?.heat?.actual || "",
-          status: part?.heat?.status || "MISSING",
-          key: "heat",
-        },
+        { field: "Material", expected: formatExpected(part?.material?.expected), actual: part?.material?.actual || "",      status: part?.material?.status || "MISSING", key: "material" },
+        { field: "Finish",   expected: formatExpected(part?.finish?.expected),   actual: part?.finish?.actual || "",        status: part?.finish?.status   || "MISSING", key: "finish"   },
+        { field: "Heat",     expected: part?.heat?.expected || "NA",             actual: part?.heat?.actual_range || part?.heat?.actual || "", status: part?.heat?.status || "MISSING", key: "heat" },
       ];
-
-      const overall = worstStatus(rows.map((r) => r.status));
-      return { part, rows, overall };
-    });
-  }, [parts]);
+      return { part, rows, overall: worstStatus(rows.map((r) => r.status)) };
+    }), [parts]);
 
   const statusCounts = useMemo(() => {
-    // Count by field (Material/Finish/Heat), not by part.
-    const counts = { PASS: 0, WARNING: 0, FAIL: 0, MISSING: 0 };
-    for (const pr of fieldRowsByPart) {
-      for (const r of pr.rows) {
-        const s = r.status || "MISSING";
-        if (s in counts) counts[s] += 1;
-      }
-    }
-    return counts;
+    const c = { PASS: 0, WARNING: 0, FAIL: 0, MISSING: 0 };
+    for (const pr of fieldRowsByPart) for (const r of pr.rows) { const s = r.status || "MISSING"; if (s in c) c[s]++; }
+    return c;
   }, [fieldRowsByPart]);
 
   const visibleParts = useMemo(() => {
     const term = searchTerm.trim().toUpperCase();
     return fieldRowsByPart
-      .filter(({ part }) => {
-        if (!term) return true;
-        const pn = (part?.part_number || "").toUpperCase();
-        return pn.includes(term);
-      })
-      .filter(({ rows }) => {
-        if (filterMode === "ALL") return true;
-        return rows.some((r) => r.status === filterMode);
-      })
+      .filter(({ part }) => !term || (part?.part_number || "").toUpperCase().includes(term))
+      .filter(({ rows }) => filterMode === "ALL" || rows.some((r) => r.status === filterMode))
       .map(({ part }) => part);
   }, [fieldRowsByPart, filterMode, searchTerm]);
 
-  const visiblePartNumbers = useMemo(() => {
-    return new Set((visibleParts || []).map((p) => p?.part_number).filter(Boolean));
-  }, [visibleParts]);
+  const visiblePartNumbers = useMemo(() => new Set((visibleParts || []).map((p) => p?.part_number).filter(Boolean)), [visibleParts]);
 
   useEffect(() => {
-    // When a new PDF loads, expand everything by default unless
-    // the user already interacted with the expand/collapse controls.
-    if (!parts.length) return;
-    if (!userAdjustedExpandedRef.current) {
-      setExpandedParts(() => new Set(parts.map((p) => p?.part_number).filter(Boolean)));
-    }
+    if (!parts.length || userAdjustedExpandedRef.current) return;
+    setExpandedParts(new Set(parts.map((p) => p?.part_number).filter(Boolean)));
   }, [parts]);
 
-  const togglePart = (partNumber) => {
+  const togglePart = (pn) => {
     userAdjustedExpandedRef.current = true;
-    setExpandedParts((prev) => {
-      const next = new Set(prev);
-      if (next.has(partNumber)) next.delete(partNumber);
-      else next.add(partNumber);
-      return next;
-    });
+    setExpandedParts((prev) => { const n = new Set(prev); n.has(pn) ? n.delete(pn) : n.add(pn); return n; });
   };
-
-  const expandAll = () => {
-    userAdjustedExpandedRef.current = true;
-    setExpandedParts(() => new Set(parts.map((p) => p?.part_number).filter(Boolean)));
-  };
-
-  const collapseAll = () => {
-    userAdjustedExpandedRef.current = true;
-    setExpandedParts(new Set());
-  };
+  const expandAll   = () => { userAdjustedExpandedRef.current = true; setExpandedParts(new Set(parts.map((p) => p?.part_number).filter(Boolean))); };
+  const collapseAll = () => { userAdjustedExpandedRef.current = true; setExpandedParts(new Set()); };
 
   return (
-    <div className="flex flex-col min-h-0 h-full">
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+
+      {/* Section header */}
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <div>
-          <div className="text-sm font-semibold text-slate-900">Material Validation</div>
-          <div className="text-xs text-slate-600">
+          <div style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--color-text-primary)" }}>Material Validation</div>
+          <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-secondary)" }}>
             {parts?.length ? `${parts.length} parts extracted` : "Upload a PDF to begin"}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-50 text-green-800 border border-green-200 text-xs">
-              ✔ PASS ({statusCounts.PASS})
-            </span>
-            <span className="inline-flex items-center px-2 py-1 rounded-full bg-yellow-50 text-yellow-800 border border-yellow-200 text-xs">
-              ! WARNING ({statusCounts.WARNING})
-            </span>
-            <span className="inline-flex items-center px-2 py-1 rounded-full bg-red-50 text-red-800 border border-red-200 text-xs">
-              ✖ FAIL ({statusCounts.FAIL})
-            </span>
-            <span className="inline-flex items-center px-2 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200 text-xs">
-              • MISSING ({statusCounts.MISSING})
-            </span>
+        {/* Status summary pills */}
+        {parts.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span className="status-chip status-chip--pass"   style={{ fontSize: 11 }}><span className="status-chip__dot"/>Pass {statusCounts.PASS}</span>
+            <span className="status-chip status-chip--warning" style={{ fontSize: 11 }}><span className="status-chip__dot"/>Warn {statusCounts.WARNING}</span>
+            <span className="status-chip status-chip--fail"   style={{ fontSize: 11 }}><span className="status-chip__dot"/>Fail {statusCounts.FAIL}</span>
           </div>
-
-          <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white/70 backdrop-blur p-1">
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                filterMode === "ALL"
-                  ? "bg-slate-900 text-white"
-                  : "bg-transparent text-slate-700 hover:bg-slate-50"
-              }`}
-              onClick={() => setFilterMode("ALL")}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                filterMode === "FAIL"
-                  ? "bg-red-600 text-white"
-                  : "bg-transparent text-slate-700 hover:bg-slate-50"
-              }`}
-              onClick={() => setFilterMode("FAIL")}
-            >
-              Fail
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                filterMode === "WARNING"
-                  ? "bg-yellow-400 text-slate-900"
-                  : "bg-transparent text-slate-700 hover:bg-slate-50"
-              }`}
-              onClick={() => setFilterMode("WARNING")}
-            >
-              Warning
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                filterMode === "MISSING"
-                  ? "bg-slate-700 text-white"
-                  : "bg-transparent text-slate-700 hover:bg-slate-50"
-              }`}
-              onClick={() => setFilterMode("MISSING")}
-            >
-              Missing
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
-      {loading ? (
-        <div className="px-4 pb-3 text-sm text-slate-700 flex items-center gap-2">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
-          Processing PDF...
-        </div>
-      ) : null}
+      {/* Toolbar */}
+      <div style={{ padding: "8px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        {/* Search */}
+        <label htmlFor="mat-search" style={{ position: "relative", flex: 1, minWidth: 160 }}>
+          <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-tertiary)", pointerEvents: "none" }}>
+            <IconSearch />
+          </span>
+          <input
+            id="mat-search"
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search part number"
+            className="input-field input-sm"
+            style={{ paddingLeft: 30 }}
+          />
+        </label>
 
-      {error ? (
-        <div className="px-4 pb-3">
-          <div className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-            {error}
-          </div>
+        {/* Filter segment */}
+        <div className="segment">
+          {["ALL","FAIL","WARNING","MISSING"].map((mode) => {
+            const activeClass = mode === "ALL" ? "seg-btn--active" : mode === "FAIL" ? "seg-btn--active-err" : mode === "WARNING" ? "seg-btn--active-warn" : "seg-btn--active";
+            return (
+              <button key={mode} className={`seg-btn ${filterMode === mode ? activeClass : ""}`} onClick={() => setFilterMode(mode)}>
+                {mode === "ALL" ? "All" : mode.charAt(0) + mode.slice(1).toLowerCase()}
+              </button>
+            );
+          })}
         </div>
-      ) : null}
 
-      <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search part number..."
-          className="flex-1 min-w-[220px] px-3 py-2 rounded-xl border border-slate-200 bg-white/80 text-slate-800 text-sm"
-        />
-        <button
-          type="button"
-          className="px-3 py-2 rounded-xl border border-slate-200 bg-white/80 hover:bg-white transition-colors text-sm font-medium text-slate-700 disabled:opacity-50"
-          onClick={expandAll}
-          disabled={!parts.length}
-        >
-          Expand all
-        </button>
-        <button
-          type="button"
-          className="px-3 py-2 rounded-xl border border-slate-200 bg-white/80 hover:bg-white transition-colors text-sm font-medium text-slate-700 disabled:opacity-50"
-          onClick={collapseAll}
-          disabled={!expandedParts.size}
-        >
-          Collapse all
-        </button>
+        {/* Expand/collapse */}
+        <button className="btn btn-ghost btn-sm" onClick={expandAll}   disabled={!parts.length}>Expand all</button>
+        <button className="btn btn-ghost btn-sm" onClick={collapseAll} disabled={!expandedParts.size}>Collapse all</button>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto px-1 pb-2 max-h-[calc(100vh-280px)]">
-        {visibleParts?.length ? (
-          <table className="min-w-full table-fixed text-sm">
-            <thead className="sticky top-0 bg-white/80 backdrop-blur z-10 border-b">
-              <tr className="text-left">
-                <th className="px-3 py-2 font-semibold text-slate-700 w-44">Part Number</th>
-                <th className="px-3 py-2 font-semibold text-slate-700 w-36">Field</th>
-                <th className="px-3 py-2 font-semibold text-slate-700">Expected</th>
-                <th className="px-3 py-2 font-semibold text-slate-700">Actual</th>
-                <th className="px-3 py-2 font-semibold text-slate-700 w-44">Status</th>
+      {/* Error */}
+      {error && <div style={{ padding: "8px 16px" }}><div className="alert alert--error">{error}</div></div>}
+
+      {/* Table */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "auto" }}>
+        {loading ? (
+          <table className="data-table"><thead><tr><th style={{width:160}}>Part Number</th><th style={{width:90}}>Field</th><th>Expected</th><th>Actual</th><th style={{width:100}}>Status</th></tr></thead><tbody><SkeletonRows /></tbody></table>
+        ) : visibleParts?.length ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th style={{ width: 160 }}>Part Number</th>
+                <th style={{ width: 90 }}>Field</th>
+                <th>Expected</th>
+                <th>Actual</th>
+                <th style={{ width: 100 }}>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {fieldRowsByPart
                 .filter(({ part }) => visiblePartNumbers.has(part?.part_number))
                 .map(({ part, rows, overall }) => {
-                  const partNumber = part?.part_number;
-                  const isExpanded = expandedParts.has(partNumber);
-                  const visibleRows =
-                    filterMode === "ALL" ? rows : rows.filter((r) => r.status === filterMode);
-                  const parentTextClass = isExpanded ? "text-white" : "text-slate-900";
-                  const descriptionTextClass = isExpanded ? "text-white/80" : "text-slate-600";
+                  const pn = part?.part_number;
+                  const isExpanded = expandedParts.has(pn);
+                  const visibleRows = filterMode === "ALL" ? rows : rows.filter((r) => r.status === filterMode);
 
                   return (
-                    <React.Fragment key={partNumber}>
+                    <React.Fragment key={pn}>
+                      {/* Parent row */}
                       <tr
-                        className={`cursor-pointer transition-colors ${
-                          isExpanded
-                            ? `bg-slate-700 text-white border-l-4 ${statusLeftBorder(overall)}`
-                            : "bg-white hover:bg-slate-50"
-                        }`}
-                        onClick={() => togglePart(partNumber)}
+                        style={{
+                          cursor: "pointer",
+                          background: isExpanded ? "var(--color-surface-2)" : "var(--color-surface)",
+                          borderLeft: `3px solid ${leftAccentColor(overall)}`,
+                        }}
+                        onClick={() => togglePart(pn)}
                       >
-                        <td className={`px-3 py-2 font-mono break-all ${parentTextClass}`}>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <span aria-hidden className="text-slate-500">
-                                {isExpanded ? "▾" : "▸"}
-                              </span>
-                              {partNumber}
+                        <td style={{ paddingLeft: 9 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }}>
+                              {isExpanded ? <IconChevronDown /> : <IconChevronRight />}
+                            </span>
+                            <div>
+                              <div style={{ fontFamily: "monospace", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--color-text-primary)", wordBreak: "break-all" }}>{pn}</div>
+                              {part?.description && (
+                                <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1, lineHeight: 1.3 }}>{part.description}</div>
+                              )}
                             </div>
-                            {part?.description ? (
-                              <div className={`text-xs font-medium leading-tight ${descriptionTextClass}`}>
-                                {part.description}
-                              </div>
-                            ) : null}
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-slate-700">
-                          {visibleRows.length ? `${visibleRows.length} item(s)` : "No matches"}
+                        <td style={{ color: "var(--color-text-secondary)", fontSize: "var(--text-xs)" }}>
+                          {visibleRows.length ? `${visibleRows.length} field${visibleRows.length > 1 ? "s" : ""}` : "No matches"}
                         </td>
-                        <td className="px-3 py-2 text-slate-500">—</td>
-                        <td className="px-3 py-2 text-slate-500">—</td>
-                        <td className="px-3 py-2">
-                          <StatusPill status={overall} />
-                        </td>
+                        <td style={{ color: "var(--color-text-tertiary)" }}>—</td>
+                        <td style={{ color: "var(--color-text-tertiary)" }}>—</td>
+                        <td><StatusChip status={overall} /></td>
                       </tr>
 
-                      {isExpanded
-                        ? visibleRows.map((r) => (
-                            <tr
-                              key={`${partNumber}_${r.key}`}
-                            className={`bg-white border-l-4 ${statusLeftBorderRow(r.status)}`}
-                            >
-                              <td className="px-3 py-2 font-mono text-slate-900 break-all">
-                                {partNumber}
-                              </td>
-                            <td className={`px-3 py-2 ${statusFieldText(r.status)} font-medium`}>{r.field}</td>
-                              <td className="px-3 py-2 text-slate-700 break-words">
-                                {r.expected || "—"}
-                              </td>
-                              <td className="px-3 py-2 text-slate-900 break-words">
-                                {r.actual || "—"}
-                              </td>
-                              <td className="px-3 py-2">
-                                <StatusPill status={r.status} />
-                              </td>
-                            </tr>
-                          ))
-                        : null}
+                      {/* Child rows */}
+                      {isExpanded && visibleRows.map((r) => (
+                        <tr key={`${pn}_${r.key}`} style={{ borderLeft: `3px solid ${leftAccentColor(r.status)}` }}>
+                          <td style={{ paddingLeft: 9, fontFamily: "monospace", fontSize: "var(--text-xs)", color: "var(--color-text-tertiary)", wordBreak: "break-all" }}>{pn}</td>
+                          <td style={{ fontSize: "var(--text-xs)", fontWeight: 500, color: "var(--color-text-primary)" }}>{r.field}</td>
+                          <td style={{ fontSize: "var(--text-xs)", color: "var(--color-text-secondary)", wordBreak: "break-word" }}>{r.expected || "—"}</td>
+                          <td style={{ fontSize: "var(--text-xs)", color: "var(--color-text-primary)", wordBreak: "break-word" }}>{r.actual || "—"}</td>
+                          <td><StatusChip status={r.status} /></td>
+                        </tr>
+                      ))}
                     </React.Fragment>
                   );
                 })}
             </tbody>
           </table>
         ) : (
-          <div className="p-6 text-sm text-slate-600 bg-white/60 rounded-2xl border border-dashed border-slate-200 m-3">
-            {backendMaterialFieldMissing ? (
-              <div>
-                Backend did not return `material_results`.
-                <div className="mt-2 text-xs text-slate-500">
-                  This usually means the backend is running an older version or the frontend is pointing at the
-                  wrong port. Restart the backend and confirm the API response includes <code>material_results</code>.
-                </div>
-              </div>
-            ) : (
-              "No material validation results to display."
-            )}
+          <div className="empty-state">
+            <span className="empty-state__icon"><IconLayers /></span>
+            <div className="empty-state__title">
+              {backendMaterialFieldMissing ? "Backend response missing material_results" : "No material results"}
+            </div>
+            <div className="empty-state__desc">
+              {backendMaterialFieldMissing
+                ? "Restart the backend and confirm the API response includes material_results."
+                : parts.length ? "No parts match the current filter or search." : "Upload a drawing PDF to validate material specifications."}
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
-

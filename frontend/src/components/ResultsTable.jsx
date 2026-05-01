@@ -1,120 +1,132 @@
 import React from "react";
 
-function StatusPill({ status }) {
-  if (status === "FOUND") {
-    return (
-      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-800 text-xs font-semibold border border-green-200">
-        <span aria-hidden>✔</span> FOUND
-      </span>
-    );
-  }
-  if (status === "STANDARD") {
-    return (
-      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-semibold border border-blue-200">
-        <span aria-hidden>⚙</span> STANDARD
-      </span>
-    );
-  }
+function IconDownload() {
   return (
-    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-800 text-xs font-semibold border border-red-200">
-      <span aria-hidden>✖</span> MISSING
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  );
+}
+
+function IconFileSearch() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  );
+}
+
+function StatusChip({ status }) {
+  const map = {
+    FOUND:    { cls: "status-chip status-chip--found",    label: "Found"    },
+    STANDARD: { cls: "status-chip status-chip--standard", label: "Standard" },
+    MISSING:  { cls: "status-chip status-chip--missing",  label: "Missing"  },
+  };
+  const cfg = map[status] || { cls: "status-chip", label: status };
+  return (
+    <span className={cfg.cls}>
+      <span className="status-chip__dot" />
+      {cfg.label}
     </span>
   );
 }
 
-export default function ResultsTable({
-  results,
-  allResults,
-  loading,
-  error,
-  selectedItem,
-  onRowClick,
-  annotatedPdfUrl,
-}) {
+function SkeletonRows() {
   return (
-    <div className="flex flex-col min-h-0">
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3">
+    <>
+      {[80, 60, 90].map((w, i) => (
+        <tr key={i}>
+          <td style={{ padding: "12px" }}><div className="skeleton" style={{ height: 14, width: 24 }} /></td>
+          <td style={{ padding: "12px" }}><div className="skeleton" style={{ height: 14, width: `${w}%` }} /></td>
+          <td style={{ padding: "12px" }}><div className="skeleton" style={{ height: 14, width: "70%" }} /></td>
+          <td style={{ padding: "12px" }}><div className="skeleton" style={{ height: 20, width: 70 }} /></td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
+export default function ResultsTable({ results, allResults, loading, error, selectedItem, onRowClick, annotatedPdfUrl }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+
+      {/* Section header */}
+      <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, borderBottom: "1px solid var(--color-border)" }}>
         <div>
-          <div className="text-sm font-semibold text-slate-900">Validation Results</div>
-          <div className="text-xs text-slate-600">
+          <div style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--color-text-primary)" }}>Validation Results</div>
+          <div style={{ fontSize: "var(--text-xs)", color: "var(--color-text-secondary)" }}>
             {allResults?.length ? `${allResults.length} BOM items` : "Upload a PDF to begin"}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          {annotatedPdfUrl ? (
-            <a
-              href={annotatedPdfUrl}
-              download
-              className="px-3 py-2 rounded-xl text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors"
-            >
-              Download PDF
-            </a>
-          ) : null}
-        </div>
+        {annotatedPdfUrl && (
+          <a href={annotatedPdfUrl} download className="btn btn-primary btn-sm" style={{ textDecoration: "none" }}>
+            <IconDownload />
+            Download PDF
+          </a>
+        )}
       </div>
 
-      {loading ? (
-        <div className="px-4 pb-3 text-sm text-slate-700 flex items-center gap-2">
-          <span className="inline-block h-3 w-3 rounded-full border-2 border-slate-300 border-t-slate-900 animate-spin" />
-          Processing PDF...
+      {/* Error banner */}
+      {error && (
+        <div style={{ padding: "8px 16px" }}>
+          <div className="alert alert--error">{error}</div>
         </div>
-      ) : null}
+      )}
 
-      {error ? (
-        <div className="px-4 pb-3">
-          <div className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-            {error}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="flex-1 min-h-0 overflow-auto px-1">
-        {results?.length ? (
-          <table className="min-w-full table-fixed text-sm">
-            <thead className="sticky top-0 bg-white/80 backdrop-blur z-10 border-b">
-              <tr className="text-left">
-                <th className="px-3 py-2 font-semibold text-slate-700 w-14">Item</th>
-                <th className="px-3 py-2 font-semibold text-slate-700 w-36">Part Number</th>
-                <th className="px-3 py-2 font-semibold text-slate-700">Description</th>
-                <th className="px-3 py-2 font-semibold text-slate-700 w-40">Status</th>
+      {/* Table area */}
+      <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+        {loading || results?.length ? (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th style={{ width: 48 }}>Item</th>
+                <th style={{ width: 140 }}>Part Number</th>
+                <th>Description</th>
+                <th style={{ width: 100 }}>Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {results.map((r) => {
-                const isSelected = selectedItem === r.item;
-                return (
-                  <tr
-                    key={`${r.item}_${r.part_number}`}
-                    className={`cursor-pointer transition-colors ${
-                      isSelected
-                        ? "bg-yellow-50"
-                        : "bg-white hover:bg-slate-50"
-                    }`}
-                    onClick={() => onRowClick?.(r.item)}
-                  >
-                    <td className="px-3 py-2 text-slate-900">{r.item}</td>
-                    <td className="px-3 py-2 font-mono text-slate-900 break-all">
-                      {r.part_number}
-                    </td>
-                    <td className="px-3 py-2 text-slate-700">
-                      <span className="block break-words">{r.description}</span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <StatusPill status={r.status} />
-                    </td>
-                  </tr>
-                );
-              })}
+            <tbody>
+              {loading ? (
+                <SkeletonRows />
+              ) : (
+                results.map((r) => {
+                  const isSelected = selectedItem === r.item;
+                  return (
+                    <tr
+                      key={`${r.item}_${r.part_number}`}
+                      className={isSelected ? "row--selected" : ""}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => onRowClick?.(r.item)}
+                    >
+                      <td style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>{r.item}</td>
+                      <td style={{ fontFamily: "monospace", fontSize: "var(--text-xs)", color: "var(--color-text-primary)", wordBreak: "break-all" }}>{r.part_number}</td>
+                      <td style={{ color: "var(--color-text-secondary)" }}>{r.description}</td>
+                      <td><StatusChip status={r.status} /></td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         ) : (
-          <div className="p-6 text-sm text-slate-600 bg-white/60 rounded-2xl border border-dashed border-slate-200 m-3">
-            No results to display.
+          /* Empty state */
+          <div className="empty-state">
+            <span className="empty-state__icon"><IconFileSearch /></span>
+            <div className="empty-state__title">No results yet</div>
+            <div className="empty-state__desc">
+              {allResults?.length
+                ? "No items match the current filter."
+                : "Upload a drawing PDF above to validate the BOM."}
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
-
