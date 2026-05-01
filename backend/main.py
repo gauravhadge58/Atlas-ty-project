@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import shutil
+import time
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -37,7 +40,46 @@ except ModuleNotFoundError:
     )
 
 
-app = FastAPI(title="Drawing BOM Validator", version="1.0.0")
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUTS_DIR = BASE_DIR / "outputs"
+UPLOADS_DIR = BASE_DIR / "uploads"
+
+OUTPUTS_DIR.mkdir(exist_ok=True, parents=True)
+UPLOADS_DIR.mkdir(exist_ok=True, parents=True)
+
+
+async def cleanup_old_outputs():
+    """Periodically cleans up output folders older than 24 hours."""
+    while True:
+        try:
+            now = time.time()
+            max_age = 24 * 60 * 60  # 24 hours in seconds
+            
+            if OUTPUTS_DIR.exists():
+                for job_dir in OUTPUTS_DIR.iterdir():
+                    if job_dir.is_dir():
+                        # Check folder modification time
+                        if now - job_dir.stat().st_mtime > max_age:
+                            try:
+                                shutil.rmtree(job_dir)
+                                print(f"Cleaned up old job dir: {job_dir.name}")
+                            except Exception as e:
+                                print(f"Failed to clean up {job_dir.name}: {e}")
+        except Exception as e:
+            print(f"Cleanup task error: {e}")
+            
+        # Wait for 1 hour before checking again
+        await asyncio.sleep(60 * 60)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Start cleanup task
+    task = asyncio.create_task(cleanup_old_outputs())
+    yield
+    # Shutdown: Cancel cleanup task
+    task.cancel()
+
+app = FastAPI(title="Drawing BOM Validator", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,12 +89,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = Path(__file__).resolve().parent
-OUTPUTS_DIR = BASE_DIR / "outputs"
-UPLOADS_DIR = BASE_DIR / "uploads"
 
-OUTPUTS_DIR.mkdir(exist_ok=True, parents=True)
-UPLOADS_DIR.mkdir(exist_ok=True, parents=True)
 
 app.mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs")
 
