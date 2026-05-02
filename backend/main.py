@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
 try:
@@ -218,6 +218,35 @@ def reset_material_reference() -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
+# Serve built frontend static files (For Production / Docker)
+# ---------------------------------------------------------------------------
+frontend_dist = BASE_DIR.parent / "frontend" / "dist"
+
+if frontend_dist.exists():
+    # Serve assets folder
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+        
+    # Serve logo and other root public files
+    @app.get("/logo.png")
+    def serve_logo():
+        logo_file = frontend_dist / "logo.png"
+        if logo_file.exists():
+            return FileResponse(logo_file)
+        raise HTTPException(status_code=404, detail="Not found")
+
+    # Serve index.html for all other routes to support React Router SPA
+    @app.get("/{catchall:path}")
+    def serve_frontend(catchall: str):
+        # Ignore API calls that fell through
+        if catchall.startswith("api/") or catchall.startswith("outputs/"):
+            raise HTTPException(status_code=404, detail="Not found")
+            
+        index_file = frontend_dist / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Not found")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
