@@ -1,0 +1,160 @@
+[
+  {
+    "pdf_name": "TDQ300123 (Standard Layout)",
+    "pdf_path": "TDQ300123  1  GV80 IE4 MOTOR LIFTING FIXTURE.pdf",
+    "item_count": 15,
+    "items": [
+      {
+        "item": 218092451,
+        "part_number": "218092451",
+        "description": "SCR CAP HD M10X20 MS NI",
+        "qty": 12.0
+      },
+      {
+        "item": 22417318,
+        "part_number": "B22417318",
+        "description": "SCR CAP HD M8X12 SS",
+        "qty": 6.0
+      },
+      {
+        "item": 30026511,
+        "part_number": "TDQ300265-11",
+        "description": "NUT M8 210800 ALUTECH KK",
+        "qty": 16.0
+      },
+      {
+        "item": 30026510,
+        "part_number": "TDQ300265-10",
+        "description": "SCR CAP HD M6X22 SS",
+        "qty": 4.0
+      },
+      {
+        "item": 30012309,
+        "part_number": "TDQ300123-09",
+        "description": "DIN 912 M8X22",
+        "qty": 16.0
+      },
+      {
+        "item": 30026508,
+        "part_number": "TDQ300265-08",
+        "description": "M10X80 SOC HD SCREW DIN 912",
+        "qty": 4.0
+      },
+      {
+        "item": 30026507,
+        "part_number": "TDQ300265-07",
+        "description": "INDEXING PLUNGER GN 817.2-6-6-C ELESA",
+        "qty": 2.0
+      },
+      {
+        "item": 30026506,
+        "part_number": "TDQ300265-06",
+        "description": "PULL HANDLE(KIPP)K0204.1600106",
+        "qty": 2.0
+      },
+      {
+        "item": 30026505,
+        "part_number": "TDQ300265-05",
+        "description": "PAD 57805.000.075 FABORY",
+        "qty": 6.0
+      },
+      {
+        "item": 30026502,
+        "part_number": "TDQ300265-02",
+        "description": "UHELNIK",
+        "qty": 4.0
+      },
+      {
+        "item": 30026503,
+        "part_number": "TDQ300265-03",
+        "description": "HOLDING BED",
+        "qty": 2.0
+      },
+      {
+        "item": 30026502,
+        "part_number": "TDQ300265-02",
+        "description": "ALUMINUM EXTRUSION REWORK",
+        "qty": 2.0
+      },
+      {
+        "item": 30026501,
+        "part_number": "TDQ300265-01",
+        "description": "BASE PLATE",
+        "qty": 1.0
+      },
+      {
+        "item": 30012300,
+        "part_number": "TDQ300123-B00",
+        "description": "CALIBRATION ASSEMBLY RH",
+        "qty": 1.0
+      },
+      {
+        "item": 30012300,
+        "part_number": "TDQ300123-A00",
+        "description": "CALIBRATION ASSEMBLY LH",
+        "qty": 1.0
+      }
+    ]
+  },
+  {
+    "pdf_name": "1950830513 (Split Part Number)",
+    "pdf_path": "1950830513  C  EXCHANGE MODULE WOODEN BOX.pdf",
+    "item_count": 9,
+    "items": [
+      {
+        "item": 1,
+        "part_number": "14",
+        "description": "",
+        "qty": 1
+      },
+      {
+        "item": 8,
+        "part_number": "1950830513-18",
+        "description": "REST BLOCK DP160&250",
+        "qty": 1.0
+      },
+      {
+        "item": 7,
+        "part_number": "1950830513-17",
+        "description": "REST BLOCK DP160&250/MB2600",
+        "qty": 1.0
+      },
+      {
+        "item": 6,
+        "part_number": "1950830513-16",
+        "description": "REST BLOCK DP450/DP750/MB4200",
+        "qty": 1.0
+      },
+      {
+        "item": 5,
+        "part_number": "1950830513-15",
+        "description": "REST BLOCK DP450/DP750/MB4200",
+        "qty": 1.0
+      },
+      {
+        "item": 4,
+        "part_number": "1950830513-12",
+        "description": "TOP COVER",
+        "qty": 1.0
+      },
+      {
+        "item": 3,
+        "part_number": "1950830513-10",
+        "description": "FOAM",
+        "qty": 2.0
+      },
+      {
+        "item": 2,
+        "part_number": "1950830513-09",
+        "description": "BASE SHEET EPE FOAM",
+        "qty": 1.0
+      },
+      {
+        "item": 1,
+        "part_number": "1950830513-01",
+        "description": "BASE SHEET",
+        "qty": 1.0
+      }
+    ]
+  }
+]

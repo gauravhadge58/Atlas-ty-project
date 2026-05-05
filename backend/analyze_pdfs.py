@@ -12,7 +12,7 @@ for pdf_path in pdfs:
     print(f'PDF: {pdf_path}')
     print("="*80)
     try:
-        with pdfplumber.open(f'../{pdf_path}') as pdf:
+        with pdfplumber.open(pdf_path) as pdf:
             for page_idx in range(min(4, len(pdf.pages))):
                 page = pdf.pages[page_idx]
                 text = page.extract_text() or ''

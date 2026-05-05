@@ -28,18 +28,21 @@ def _find_header_indexes(header_row: List[str]) -> Tuple[int, int, int, int]:
     for i, h in enumerate(normalized):
         if not h:
             continue
-        if "ITEM" in h or ("EM" in h and "PA" in h):  # Handle split "ITEM PART" -> "EM PA"
+        # Handle partials like "TEM", "EM"
+        if "ITEM" in h or h.endswith("TEM") or ("EM" in h and "PA" in h):
             item_col = i
-        if ("PART" in h and "NUMBER" in h) or h == "PARTNUMBER" or "PART#" in h:
+        # Handle partials like "PART", "ART"
+        if ("PART" in h and "NUMBER" in h) or h == "PARTNUMBER" or "PART#" in h or h.endswith("ARTNUMBER") or h == "PART":
             part_col = i
-        # Handle split "PART NUMBER" across two cells (e.g., "EM PA" + "RT NUMBER")
+        # Handle split "PART NUMBER" across two cells
         if "NUMBER" in h and i > 0:
             prev_cell = normalized[i-1] if i-1 < len(normalized) else ""
             if "PA" in prev_cell or "PART" in prev_cell:
                 part_col = i
-        if "DESCRIPTION" in h or h == "DESC":
+        # Handle partials like "DESCRIPTION", "ESCRIPTION"
+        if "DESCRIPTION" in h or h == "DESC" or "ESCRIPTION" in h:
             desc_col = i
-        if "QTY" in h or h == "QUANTITY":
+        if "QTY" in h or "QUANTITY" in h:
             qty_col = i
     return item_col, part_col, desc_col, qty_col
 
@@ -62,15 +65,22 @@ def _table_score(extracted_rows: List[List[Any]]) -> int:
         return 0
 
     score = 0
+    max_cols = max(len(row) for row in extracted_rows)
+    
+    # Penalize tables with very few columns (BOM usually has >= 4)
+    if max_cols < 3:
+        score -= 10
+    elif max_cols < 4:
+        score -= 5
 
     # Consider up to first 8 rows for header/body hints.
     for row in extracted_rows[:8]:
         joined = normalize_text(" ".join(_safe_cell_str(c) for c in row))
-        if "ITEM" in joined:
+        if "ITEM" in joined or "TEM" in joined:
             score += 2
-        if ("PART" in joined and "NUMBER" in joined) or "PART#" in joined or "PARTNUMBER" in joined:
+        if ("PART" in joined and "NUMBER" in joined) or "PART#" in joined or "PARTNUMBER" in joined or "ARTNUMBER" in joined:
             score += 3
-        if "DESCRIPTION" in joined:
+        if "DESCRIPTION" in joined or "ESCRIPTION" in joined:
             score += 3
         if "QTY" in joined or "QUANTITY" in joined:
             score += 2
@@ -79,8 +89,10 @@ def _table_score(extracted_rows: List[List[Any]]) -> int:
     plausible_cells = 0
     for row in extracted_rows[:15]:
         for cell in row[:8]:
-            pn = normalize_part_number(_safe_cell_str(cell))
-            if _part_number_plausible(pn):
+            val = _safe_cell_str(cell)
+            pn = normalize_part_number(val)
+            # Tighten plausibility for scoring: avoid long descriptions
+            if _part_number_plausible(pn) and len(val.split()) < 3:
                 plausible_cells += 1
     score += min(plausible_cells, 12)
 
@@ -180,14 +192,14 @@ def extract_bom_from_page1(pdf_path: str) -> Tuple[List[Dict[str, Any]], Dict[st
                 joined = normalize_text(" ".join(_safe_cell_str(c) for c in row))
                 # Improved header detection: handle split "PART" text (e.g., "EM PA" + "RT NUMBER")
                 # Also check for "ITEM" which is common in BOM headers
-                has_part_or_item = "PART" in joined or ("PA" in joined and "RT" in joined) or "ITEM" in joined
+                has_part_or_item = "PART" in joined or ("PA" in joined and "RT" in joined) or "ITEM" in joined or "TEM" in joined
                 has_number = "NUMBER" in joined
-                has_description = "DESCRIPTION" in joined or "DESC" in joined
+                has_description = "DESCRIPTION" in joined or "DESC" in joined or "ESCRIPTION" in joined
                 has_qty = "QTY" in joined or "QUANTITY" in joined
                 
                 if (has_part_or_item and has_number and has_description) or (
                     has_part_or_item and has_number and has_qty
-                ):
+                ) or (has_description and has_qty):
                     header_idx = i
                     break
             header_idx = header_idx if header_idx is not None else 0
@@ -300,8 +312,19 @@ def extract_bom_from_page1(pdf_path: str) -> Tuple[List[Dict[str, Any]], Dict[st
                 )
 
         plausible_count = sum(1 for r in bom_rows if _part_number_plausible(r.get("part_number", "")))
-        # If the structured parse still looks like garbage (title block/copyright), fallback to text lines.
+        
+        # Determine if the structured parse is trustworthy.
+        # Fallback if:
+        # - Very few rows found
+        # - Most rows don't have plausible part numbers
+        # - The table had very few columns and no header was detected
+        is_suspicious = False
         if not bom_rows or plausible_count < 2:
+            is_suspicious = True
+        elif max_cols < 3 and header_idx is None:
+            is_suspicious = True
+
+        if is_suspicious:
             text = page.extract_text() or ""
             parsed_rows = _parse_bom_from_text_lines(text)
             if not parsed_rows:
