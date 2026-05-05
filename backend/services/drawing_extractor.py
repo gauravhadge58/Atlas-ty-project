@@ -1,8 +1,14 @@
 import pdfplumber
 import re
+import logging
 from typing import Dict, List, Set, Tuple
 
 from .common import normalize_part_number, normalize_text
+
+# Configure logging
+logger = logging.getLogger(__name__)
+# Set to WARNING level for production - only log warnings and errors
+logging.basicConfig(level=logging.WARNING, format='%(levelname)s: %(message)s')
 
 
 _REGEX_PART_DESC = re.compile(
@@ -12,20 +18,27 @@ _REGEX_PART_DESC = re.compile(
     flags=re.IGNORECASE | re.DOTALL,
 )
 
+# Fallback pattern for notes-based format: "NOTES: 1. PART NUMBER: TDK040023-C02"
+_REGEX_PART_NOTES = re.compile(
+    r"NOTES?\s*:\s*\d+\.\s*PART\s*NUMBER\s*[:\-]?\s*(?P<part>[A-Z0-9][A-Z0-9\-/\. ]{0,80})",
+    flags=re.IGNORECASE,
+)
+
 _DESC_TRIM_SPLIT = re.compile(
-    r"\b(?:MATERIAL|FINISH|NOTE|HARDENED|TEMPERED|SECTION|DRAWING|SIZE|SHEET|SCALE)\b",
+    r"\b(?:MATERIAL|FINISH|NOTE|HARDENED|TEMPERED|SECTION|DRAWING|SIZE|SHEET|SCALE|PART)\b",
     flags=re.IGNORECASE,
 )
 
 
 _PART_NUMBER_RE = re.compile(
-    r"^PART\s*NUMBER\s*[:\-]?\s*(?P<part>[A-Z0-9][A-Z0-9\-/\. ]{0,80})\s*$",
+    r"(?:^|(?<=\s))(?:\d+\.\s*)?PART\s*NUMBER\s*[:\-]?\s*(?P<part>[A-Z0-9][A-Z0-9\-/\. ]{0,80})(?=\s|$)",
     flags=re.IGNORECASE | re.MULTILINE,
 )
-_MATERIAL_RE = re.compile(r"^MATERIAL\s*:\s*(?P<val>.+)$", flags=re.IGNORECASE | re.MULTILINE)
-_FINISH_RE = re.compile(r"^FINISH\s*:\s*(?P<val>.+)$", flags=re.IGNORECASE | re.MULTILINE)
+_MATERIAL_RE = re.compile(r"^(?:\d+\.\s*)?MATERIAL\s*:\s*(?P<val>.+?)(?:\s+\d+\.\s+[A-Z]|$)", flags=re.IGNORECASE | re.MULTILINE)
+_FINISH_RE = re.compile(r"^(?:\d+\.\s*)?(SURFACE\s+)?FINISH\s*:\s*(?P<val>.+?)(?:\s+\d+\.\s+[A-Z]|$)", flags=re.IGNORECASE | re.MULTILINE)
+_HEAT_TREATMENT_RE = re.compile(r"^(?:\d+\.\s*)?HEAT\s+TREATMENT\s*:\s*(?P<val>.+?)(?:\s+\d+\.\s+[A-Z]|$)", flags=re.IGNORECASE | re.MULTILINE)
 _DESCRIPTION_RE = re.compile(
-    r"^DESCRIPTION\s*[:\-]?\s*(?P<val>.+)$",
+    r"^(?:\d+\.\s*)?(?:PART\s+)?DESCRIPTION\s*[:\-]?\s*(?P<val>.+)$",
     flags=re.IGNORECASE | re.MULTILINE,
 )
 
@@ -119,12 +132,15 @@ def extract_part_materials_from_pages(
         out: Dict[str, Dict[str, str]] = {}
 
         page_count = len(pdf.pages)
+        
         for page_idx in range(start_page_index, page_count):
             page = pdf.pages[page_idx]
             try:
                 text = page.extract_text() or ""
-            except Exception:
+            except Exception as e:
+                logger.error(f"Page {page_idx}: Material extraction - text extraction failed: {e}")
                 continue
+            
             if not text:
                 continue
 
@@ -136,7 +152,27 @@ def extract_part_materials_from_pages(
 
             for i, m in enumerate(matches):
                 pn_raw = m.group("part") or ""
-                pn = normalize_part_number(pn_raw)
+                
+                # Apply same cleanup logic as extract_parts_from_pages()
+                pn_raw_norm = normalize_text(pn_raw)
+                
+                # Trim common label words from the end
+                pn_raw_norm_trimmed = re.split(
+                    r"\b(?:NOTE|MATERIAL|FINISH|HARDENED|TEMPERED|DESCRIPTION|PART)\b",
+                    pn_raw_norm,
+                    maxsplit=1,
+                )[0].strip()
+                
+                # Remove trailing numbered list patterns like "2."
+                pn_raw_norm_trimmed = re.sub(r'\s+\d+\.$', '', pn_raw_norm_trimmed).strip()
+                
+                # Extract just the part number pattern: PREFIX-SUFFIX
+                part_match = re.match(r'^([A-Z]+\d+[-/][A-Z0-9]+)', pn_raw_norm_trimmed)
+                if part_match:
+                    pn_raw_norm_trimmed = part_match.group(1)
+                
+                pn = normalize_part_number(pn_raw_norm_trimmed)
+                
                 if not pn:
                     continue
 
@@ -149,6 +185,7 @@ def extract_part_materials_from_pages(
                 mm = _MATERIAL_RE.search(block_text)
                 if mm:
                     material_line = mm.group("val") or ""
+                    
                 finish_line = ""
                 fm = _FINISH_RE.search(block_text)
                 if fm:
@@ -162,7 +199,15 @@ def extract_part_materials_from_pages(
                 # Parse fields.
                 material_code, material_name = _extract_material_code_and_name(material_line)
                 finish = _extract_finish_value(finish_line)
-                heat_treatment = _extract_heat_treatment(block_text)
+                
+                # Try regex match first for heat treatment (handles numbered format)
+                heat_treatment = ""
+                ht_match = _HEAT_TREATMENT_RE.search(block_text)
+                if ht_match:
+                    heat_treatment = normalize_text(ht_match.group("val") or "")
+                else:
+                    # Fall back to keyword-based extraction for backward compatibility
+                    heat_treatment = _extract_heat_treatment(block_text)
 
                 if pn not in out:
                     out[pn] = {
@@ -203,31 +248,57 @@ def extract_parts_from_pages(pdf_path: str, start_page_index: int = 1) -> Set[st
             page = pdf.pages[page_idx]
             try:
                 text = page.extract_text() or ""
-            except Exception:
+            except Exception as e:
+                logger.error(f"Page {page_idx}: Text extraction failed: {e}")
                 # Some PDFs can throw internal pdfminer exceptions during layout;
                 # skip problematic pages rather than failing the whole run.
                 continue
+            
             if not text:
                 continue
+            
             text_norm = normalize_text(text)
 
             if "PART NUMBER" not in text_norm:
                 continue
 
-            for m in _REGEX_PART_DESC.finditer(text_norm):
+            matches = list(_REGEX_PART_DESC.finditer(text_norm))
+            if not matches:
+                # Try fallback pattern for notes-based format
+                matches = list(_REGEX_PART_NOTES.finditer(text_norm))
+            
+            if not matches:
+                # Log when PART NUMBER keyword exists but both regex patterns fail to match
+                logger.warning(f"Page {page_idx}: 'PART NUMBER' found but no regex pattern matched")
+                continue
+
+            for match_idx, m in enumerate(matches):
                 pn_raw = m.group("part") or ""
+                
                 pn_raw_norm = normalize_text(pn_raw)
+                
                 # OCR sometimes appends labels into the same capture (e.g. "...-01 NOTE ...").
-                # Trim common label words from the end.
-                pn_raw_norm = re.split(
-                    r"\b(?:NOTE|MATERIAL|FINISH|HARDENED|TEMPERED|DESCRIPTION)\b",
+                # Trim common label words from the end, including "PART" which appears in numbered lists.
+                pn_raw_norm_trimmed = re.split(
+                    r"\b(?:NOTE|MATERIAL|FINISH|HARDENED|TEMPERED|DESCRIPTION|PART)\b",
                     pn_raw_norm,
                     maxsplit=1,
                 )[0].strip()
-                pn = normalize_part_number(pn_raw_norm)
+                
+                # Additional cleanup: remove trailing numbered list patterns like "2." or "1."
+                # This handles cases like "TDK040023-01 2." -> "TDK040023-01"
+                pn_raw_norm_trimmed = re.sub(r'\s+\d+\.$', '', pn_raw_norm_trimmed).strip()
+                
+                # Extract just the part number pattern: typically "PREFIX-SUFFIX" where SUFFIX is alphanumeric
+                # This handles cases like "TDK040023-A00 2-M12 TAP D.P25" -> "TDK040023-A00"
+                # Part numbers typically follow pattern: LETTERS+DIGITS-ALPHANUMERIC (e.g., TDK040023-A00, TDK040023-01)
+                part_match = re.match(r'^([A-Z]+\d+[-/][A-Z0-9]+)', pn_raw_norm_trimmed)
+                if part_match:
+                    pn_raw_norm_trimmed = part_match.group(1)
+                
+                pn = normalize_part_number(pn_raw_norm_trimmed)
+                
                 if pn and any(ch.isdigit() for ch in pn):
                     part_keys.add(pn)
 
-    return part_keys
-
-
+        return part_keys

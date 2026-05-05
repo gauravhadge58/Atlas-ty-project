@@ -5,3 +5,5 @@ pdfplumber
 pymupdf
 rapidfuzz
 openpyxl
+hypothesis
+pytest

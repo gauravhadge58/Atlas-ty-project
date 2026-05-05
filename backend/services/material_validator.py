@@ -118,14 +118,16 @@ def _similar_finish(expected: str, actual: str) -> bool:
 
 
 def _worst_status(statuses: List[str]) -> str:
-    # Ordering: FAIL > WARNING > MISSING > PASS
+    # Ordering: FAIL > WARNING > MISSING > PASS > N/A
     if "FAIL" in statuses:
         return "FAIL"
     if "WARNING" in statuses:
         return "WARNING"
     if "MISSING" in statuses:
         return "MISSING"
-    return "PASS"
+    if "PASS" in statuses:
+        return "PASS"
+    return "N/A"
 
 
 def validate_materials(
@@ -170,18 +172,23 @@ def validate_materials(
             heat_expected = ref.get("heat")  # may be None
 
         if not actual_material_name and not actual_material_code:
+            # No material data in PDF - validation not applicable (e.g., assembly parts)
+            material_status = "N/A"
+        elif not actual_material_name:
+            # PDF missing material name - truly missing data
             material_status = "MISSING"
         elif not ref:
-            material_status = "MISSING"
-        elif not actual_material_name:
-            material_status = "MISSING"
+            # No reference data - validation not applicable
+            material_status = "N/A"
         else:
             material_status = "PASS" if actual_material_name in material_expected else "FAIL"
 
         if not actual_finish_raw:
-            finish_status = "MISSING"
+            # No finish data in PDF - validation not applicable (e.g., assembly parts)
+            finish_status = "N/A"
         elif not ref:
-            finish_status = "MISSING"
+            # No reference data - validation not applicable
+            finish_status = "N/A"
         else:
             if any(actual_finish == exp for exp in finish_expected):
                 finish_status = "PASS"
@@ -195,20 +202,31 @@ def validate_materials(
                         break
 
         heat_expected_norm = normalize_text(heat_expected) if heat_expected else ""
+        
+        # If PDF has no heat treatment field at all
         if not actual_heat_treatment or not actual_heat_range:
             if not ref:
-                heat_status = "MISSING"
+                # No reference data - validation not applicable
+                # N/A indicates "not applicable" rather than "MISSING" (required but absent)
+                heat_status = "N/A"
             elif heat_expected is None or heat_expected_norm in {"", "NA"}:
-                # Reference indicates no numeric heat validation required.
-                heat_status = "PASS"
+                # Reference indicates no heat treatment required - N/A (not MISSING)
+                # This means the PDF correctly doesn't have heat treatment when it's not needed
+                heat_status = "N/A"
             else:
+                # Reference requires heat treatment but PDF doesn't have it
                 heat_status = "MISSING"
         else:
+            # PDF has heat treatment data
             if not ref:
-                heat_status = "MISSING"
+                # No reference to validate against
+                heat_status = "N/A"
             elif heat_expected is None or heat_expected_norm in {"", "NA"}:
+                # PDF has heat treatment but reference says it's not required
+                # This is a WARNING - extra info that wasn't expected
                 heat_status = "WARNING"
             else:
+                # Both PDF and reference have heat treatment - validate the range
                 heat_status = "PASS" if actual_heat_range == heat_expected_norm else "FAIL"
 
         # For display: if we have a heat treatment sentence, keep it, but also attach the extracted range.
@@ -223,6 +241,7 @@ def validate_materials(
             {
                 "part_number": part_number,
                 "description": actual_description,
+                "edm_code": actual_material_code,  # EDM code extracted from PDF
                 "material": {
                     "expected": material_expected,
                     "actual": actual_material_display,

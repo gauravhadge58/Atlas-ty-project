@@ -11,16 +11,17 @@ function worstStatus(statuses) {
   if (statuses.includes("FAIL"))    return "FAIL";
   if (statuses.includes("WARNING")) return "WARNING";
   if (statuses.includes("MISSING")) return "MISSING";
-  return "PASS";
+  if (statuses.includes("PASS"))    return "PASS";
+  return "N/A";
 }
 
 function statusChipClass(status) {
-  const map = { PASS: "pass", FAIL: "fail", WARNING: "warning", MISSING: "missing" };
+  const map = { PASS: "pass", FAIL: "fail", WARNING: "warning", MISSING: "missing", "N/A": "na" };
   return `status-chip status-chip--${map[status] || "missing"}`;
 }
 
 function StatusChip({ status }) {
-  const labels = { PASS: "Pass", FAIL: "Fail", WARNING: "Warning", MISSING: "Missing" };
+  const labels = { PASS: "Pass", FAIL: "Fail", WARNING: "Warning", MISSING: "Missing", "N/A": "N/A" };
   return (
     <span className={statusChipClass(status)}>
       <span className="status-chip__dot" />
@@ -101,7 +102,7 @@ export default function MaterialTable({ materialResults, loading, error, backend
     }), [parts]);
 
   const statusCounts = useMemo(() => {
-    const c = { PASS: 0, WARNING: 0, FAIL: 0, MISSING: 0 };
+    const c = { PASS: 0, WARNING: 0, FAIL: 0, MISSING: 0, "N/A": 0 };
     for (const pr of fieldRowsByPart) for (const r of pr.rows) { const s = r.status || "MISSING"; if (s in c) c[s]++; }
     return c;
   }, [fieldRowsByPart]);
@@ -169,11 +170,11 @@ export default function MaterialTable({ materialResults, loading, error, backend
 
         {/* Filter segment */}
         <div className="segment">
-          {["ALL","FAIL","WARNING","MISSING"].map((mode) => {
+          {["ALL","FAIL","WARNING","MISSING","N/A"].map((mode) => {
             const activeClass = mode === "ALL" ? "seg-btn--active" : mode === "FAIL" ? "seg-btn--active-err" : mode === "WARNING" ? "seg-btn--active-warn" : "seg-btn--active";
             return (
               <button key={mode} className={`seg-btn ${filterMode === mode ? activeClass : ""}`} onClick={() => setFilterMode(mode)}>
-                {mode === "ALL" ? "All" : mode.charAt(0) + mode.slice(1).toLowerCase()}
+                {mode === "ALL" ? "All" : mode === "N/A" ? "N/A" : mode.charAt(0) + mode.slice(1).toLowerCase()}
               </button>
             );
           })}
@@ -230,6 +231,11 @@ export default function MaterialTable({ materialResults, loading, error, backend
                               <div style={{ fontFamily: "monospace", fontSize: "var(--text-xs)", fontWeight: 600, color: "var(--color-text-primary)", wordBreak: "break-all" }}>{pn}</div>
                               {part?.description && (
                                 <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1, lineHeight: 1.3 }}>{part.description}</div>
+                              )}
+                              {part?.edm_code && (
+                                <div style={{ fontSize: 11, color: "var(--color-brand)", marginTop: 2, fontFamily: "monospace", fontWeight: 600 }}>
+                                  EDM: {part.edm_code}
+                                </div>
                               )}
                             </div>
                           </div>

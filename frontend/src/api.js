@@ -8,7 +8,7 @@ export async function uploadPdf(file) {
 
   const res = await axios.post(`${API_BASE_URL}/upload`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
-    timeout: 5 * 60 * 1000,
+    timeout: 0, // No timeout - wait indefinitely for LLM processing
   });
 
   return res.data;
@@ -38,4 +38,13 @@ export async function saveMaterialReference(rows) {
 export async function resetMaterialReference() {
   const res = await axios.post(`${API_BASE_URL}/material-reference/reset`);
   return res.data; // { reset: true, rows: [...] }
+}
+
+// ── Fitment Validation ────────────────────────────────────────────────────────
+
+export async function runFitmentCheck(jobId) {
+  const res = await axios.post(`${API_BASE_URL}/fitment/${jobId}`, {}, {
+    timeout: 0, // No timeout - wait indefinitely for LLM processing
+  });
+  return res.data; // { fitment_results, fitment_summary, fitment_profiles, assembly_graph }
 }

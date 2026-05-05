@@ -28,10 +28,15 @@ def _find_header_indexes(header_row: List[str]) -> Tuple[int, int, int, int]:
     for i, h in enumerate(normalized):
         if not h:
             continue
-        if "ITEM" in h:
+        if "ITEM" in h or ("EM" in h and "PA" in h):  # Handle split "ITEM PART" -> "EM PA"
             item_col = i
         if ("PART" in h and "NUMBER" in h) or h == "PARTNUMBER" or "PART#" in h:
             part_col = i
+        # Handle split "PART NUMBER" across two cells (e.g., "EM PA" + "RT NUMBER")
+        if "NUMBER" in h and i > 0:
+            prev_cell = normalized[i-1] if i-1 < len(normalized) else ""
+            if "PA" in prev_cell or "PART" in prev_cell:
+                part_col = i
         if "DESCRIPTION" in h or h == "DESC":
             desc_col = i
         if "QTY" in h or h == "QUANTITY":
@@ -173,8 +178,15 @@ def extract_bom_from_page1(pdf_path: str) -> Tuple[List[Dict[str, Any]], Dict[st
             header_idx = None
             for i, row in enumerate(extracted):
                 joined = normalize_text(" ".join(_safe_cell_str(c) for c in row))
-                if ("PART" in joined and "NUMBER" in joined and "DESCRIPTION" in joined) or (
-                    "PART" in joined and "NUMBER" in joined and "QTY" in joined
+                # Improved header detection: handle split "PART" text (e.g., "EM PA" + "RT NUMBER")
+                # Also check for "ITEM" which is common in BOM headers
+                has_part_or_item = "PART" in joined or ("PA" in joined and "RT" in joined) or "ITEM" in joined
+                has_number = "NUMBER" in joined
+                has_description = "DESCRIPTION" in joined or "DESC" in joined
+                has_qty = "QTY" in joined or "QUANTITY" in joined
+                
+                if (has_part_or_item and has_number and has_description) or (
+                    has_part_or_item and has_number and has_qty
                 ):
                     header_idx = i
                     break
@@ -185,7 +197,31 @@ def extract_bom_from_page1(pdf_path: str) -> Tuple[List[Dict[str, Any]], Dict[st
             header_row = header_row + [""] * (max_cols - len(header_row))
             item_col, part_col, desc_col, qty_col = _find_header_indexes(header_row)
 
-            data_rows = extracted[header_idx + 1 :]
+            # Handle both standard (data after header) and inverted (data before header) BOMs
+            # Some PDFs have BOM data BEFORE the header row (bottom-to-top numbering)
+            data_rows_after = extracted[header_idx + 1 :]
+            data_rows_before = extracted[:header_idx] if header_idx > 0 else []
+            
+            # Try to determine which direction has the actual BOM data
+            # by checking for plausible part numbers in the expected column
+            def count_plausible_rows(rows):
+                count = 0
+                for row in rows:
+                    if len(row) > part_col:
+                        pn_raw = normalize_text(_safe_cell_str(row[part_col]))
+                        if pn_raw and len(pn_raw) > 3:  # Basic check for non-empty part number column
+                            count += 1
+                return count
+            
+            plausible_after = count_plausible_rows(data_rows_after[:15])  # Check first 15 rows
+            plausible_before = count_plausible_rows(data_rows_before[-15:])  # Check last 15 rows
+            
+            # Use whichever direction has more plausible part numbers
+            if plausible_before > plausible_after and plausible_before > 0:
+                data_rows = data_rows_before
+            else:
+                data_rows = data_rows_after
+            
             row_count = len(data_rows)
             row_height_guess = (table_bottom - table_top) / max(row_count, 1)
 
@@ -198,8 +234,45 @@ def extract_bom_from_page1(pdf_path: str) -> Tuple[List[Dict[str, Any]], Dict[st
 
             for i, row in enumerate(data_rows):
                 row = list(row) + [""] * (max_cols - len(row))
-                item_val = parse_int(row[item_col]) if item_col < len(row) else None
+                
+                # Parse item number - handle split case where item column contains "8 19" instead of just "8"
+                item_cell = normalize_text(_safe_cell_str(row[item_col])) if item_col < len(row) else ""
+                if item_cell and ' ' in item_cell:
+                    # Item column contains space (e.g., "8 19") - take only first number
+                    item_val = parse_int(item_cell.split()[0])
+                else:
+                    item_val = parse_int(item_cell)
+                
                 part_number_raw = normalize_text(_safe_cell_str(row[part_col])) if part_col < len(row) else ""
+                
+                # IMPROVED FIX: Handle split part numbers (e.g., "8 19" + "50830513-18" -> "1950830513-18")
+                # Parse previous column to separate item number from partial digits
+                if part_col > 0 and part_number_raw and item_val is not None:
+                    prev_cell = normalize_text(_safe_cell_str(row[part_col - 1]))
+                    
+                    # Check if previous cell contains item number + partial digits pattern
+                    # Pattern: "8 19" or "8  19" (item number, space(s), partial digits)
+                    if prev_cell and ' ' in prev_cell:
+                        parts = prev_cell.split()
+                        if len(parts) == 2:
+                            potential_item = parse_int(parts[0])
+                            partial_digits = parts[1]
+                            
+                            # Verify that the item number matches the expected item number for current row
+                            # Only proceed if previous column contains both item number AND partial digits
+                            if (potential_item == item_val and 
+                                partial_digits.isdigit() and 
+                                len(partial_digits) > 0):
+                                
+                                # Reconstruct: prepend partial digits to current column
+                                # Example: "8 19" + "50830513-18" → extract "19" → "19" + "50830513-18" → "1950830513-18"
+                                reconstructed = partial_digits + part_number_raw
+                                
+                                # Validation: Only use reconstructed if it's plausible
+                                # When we detect the split pattern, we should reconstruct
+                                if _part_number_plausible(reconstructed):
+                                    part_number_raw = reconstructed
+                
                 part_number = normalize_part_number(part_number_raw)
                 description = normalize_text(_safe_cell_str(row[desc_col])) if desc_col < len(row) else ""
                 qty = parse_qty(_safe_cell_str(row[qty_col])) if qty_col < len(row) else None

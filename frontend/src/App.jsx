@@ -3,6 +3,8 @@ import { Routes, Route, NavLink } from "react-router-dom";
 import PdfViewer from "./components/PdfViewer.jsx";
 import ResultsTable from "./components/ResultsTable.jsx";
 import MaterialTable from "./components/MaterialTable.jsx";
+import FitmentTable from "./components/FitmentTable.jsx";
+import AssemblyGraphTable from "./components/AssemblyGraphTable.jsx";
 import MaterialReferencePage from "./components/MaterialReferencePage.jsx";
 import { uploadPdf } from "./api.js";
 
@@ -155,7 +157,12 @@ function ValidatorPage({
   materialResults, setMaterialResults,
   backendMaterialFieldMissing, setBackendMaterialFieldMissing,
   bomAnnotationPositions, setBomAnnotationPositions,
-  uploadedFileName, setUploadedFileName
+  uploadedFileName, setUploadedFileName,
+  fitmentResults, setFitmentResults,
+  fitmentSummary, setFitmentSummary,
+  fitmentProfiles, setFitmentProfiles,
+  assemblyGraph, setAssemblyGraph,
+  jobId, setJobId,
 }) {
   const [missingOnly, setMissingOnly]   = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -177,17 +184,24 @@ function ValidatorPage({
   async function handleUpload(file) {
     setError(""); setLoading(true);
     setResults([]); setMaterialResults([]);
+    setFitmentResults([]); setFitmentSummary({}); setFitmentProfiles({});
+    setAssemblyGraph({});
     setBackendMaterialFieldMissing(false);
     setBomAnnotationPositions([]); setSelectedItem(null);
     setAnnotatedPdfUrl(""); setUploadedFileName(file?.name || "");
     try {
       const data = await uploadPdf(file);
+      setJobId(data.job_id || "");
       setAnnotatedPdfUrl(data.annotated_pdf_url);
       setResults(data.results || []);
       setBomAnnotationPositions(data.bom_annotation_positions || []);
       const hasField = Object.prototype.hasOwnProperty.call(data, "material_results");
       setBackendMaterialFieldMissing(!hasField);
       setMaterialResults(Array.isArray(data.material_results) ? data.material_results : []);
+      setFitmentResults(Array.isArray(data.fitment_results) ? data.fitment_results : []);
+      setFitmentSummary(data.fitment_summary || {});
+      setFitmentProfiles(data.fitment_profiles || {});
+      setAssemblyGraph(data.assembly_graph || {});
     } catch (e) {
       setError(e?.response?.data?.detail || e?.message || "Upload failed");
     } finally {
@@ -197,8 +211,11 @@ function ValidatorPage({
 
   function handleReset() {
     setError("");
+    setJobId("");
     setResults([]);
     setMaterialResults([]);
+    setFitmentResults([]); setFitmentSummary({}); setFitmentProfiles({});
+    setAssemblyGraph({});
     setBackendMaterialFieldMissing(false);
     setBomAnnotationPositions([]);
     setSelectedItem(null);
@@ -258,6 +275,29 @@ function ValidatorPage({
             >
               Material Validation
             </button>
+            <button
+              id="tab-fitment"
+              className={`tab-btn ${activeTab === "FITMENT" ? "tab-btn--active" : ""}`}
+              onClick={() => { setActiveTab("FITMENT"); setSelectedItem(null); }}
+            >
+              Fitment Check
+              {fitmentSummary?.fail > 0 && (
+                <span style={{
+                  marginLeft: 6, fontSize: 10, fontWeight: 700,
+                  background: "var(--color-error)", color: "#fff",
+                  borderRadius: 8, padding: "1px 5px",
+                }}>
+                  {fitmentSummary.fail}
+                </span>
+              )}
+            </button>
+            <button
+              id="tab-assembly"
+              className={`tab-btn ${activeTab === "ASSEMBLY" ? "tab-btn--active" : ""}`}
+              onClick={() => { setActiveTab("ASSEMBLY"); setSelectedItem(null); }}
+            >
+              Assembly Graph
+            </button>
           </div>
 
           {/* Legend + filter — only on BOM tab when results exist */}
@@ -295,12 +335,45 @@ function ValidatorPage({
               onRowClick={(item) => setSelectedItem(item)}
               annotatedPdfUrl={annotatedPdfUrl}
             />
-          ) : (
+          ) : activeTab === "MATERIAL" ? (
             <MaterialTable
               materialResults={materialResults}
               loading={loading}
               error={error}
               backendMaterialFieldMissing={backendMaterialFieldMissing}
+            />
+          ) : activeTab === "FITMENT" ? (
+            <FitmentTable
+              fitmentResults={fitmentResults}
+              fitmentSummary={fitmentSummary}
+              fitmentProfiles={fitmentProfiles}
+              loading={loading}
+              error={error}
+              jobId={jobId}
+              onRunFitmentCheck={async () => {
+                setLoading(true);
+                setError("");
+                try {
+                  const { runFitmentCheck } = await import("./api.js");
+                  const data = await runFitmentCheck(jobId);
+                  setFitmentResults(Array.isArray(data.fitment_results) ? data.fitment_results : []);
+                  setFitmentSummary(data.fitment_summary || {});
+                  setFitmentProfiles(data.fitment_profiles || {});
+                  setAssemblyGraph(data.assembly_graph || {});
+                } catch (e) {
+                  setError(e?.response?.data?.detail || e?.message || "Fitment check failed");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            />
+          ) : (
+            <AssemblyGraphTable
+              assemblyGraph={assemblyGraph}
+              fitmentProfiles={fitmentProfiles}
+              fitmentResults={fitmentResults}
+              loading={loading}
+              error={error}
             />
           )}
         </div>
@@ -319,6 +392,11 @@ export default function App() {
   const [backendMaterialFieldMissing, setBackendMaterialFieldMissing] = useState(false);
   const [bomAnnotationPositions, setBomAnnotationPositions]     = useState([]);
   const [uploadedFileName, setUploadedFileName]                 = useState("");
+  const [fitmentResults, setFitmentResults]                     = useState([]);
+  const [fitmentSummary, setFitmentSummary]                     = useState({});
+  const [fitmentProfiles, setFitmentProfiles]                   = useState({});
+  const [assemblyGraph, setAssemblyGraph]                       = useState({});
+  const [jobId, setJobId]                                       = useState("");
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
@@ -334,6 +412,11 @@ export default function App() {
             backendMaterialFieldMissing={backendMaterialFieldMissing} setBackendMaterialFieldMissing={setBackendMaterialFieldMissing}
             bomAnnotationPositions={bomAnnotationPositions} setBomAnnotationPositions={setBomAnnotationPositions}
             uploadedFileName={uploadedFileName} setUploadedFileName={setUploadedFileName}
+            fitmentResults={fitmentResults} setFitmentResults={setFitmentResults}
+            fitmentSummary={fitmentSummary} setFitmentSummary={setFitmentSummary}
+            fitmentProfiles={fitmentProfiles} setFitmentProfiles={setFitmentProfiles}
+            assemblyGraph={assemblyGraph} setAssemblyGraph={setAssemblyGraph}
+            jobId={jobId} setJobId={setJobId}
           />
         } />
         <Route path="/reference-table" element={<MaterialReferencePage />} />

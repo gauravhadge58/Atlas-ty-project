@@ -228,6 +228,7 @@ body {
 .status-chip--standard,
 .status-chip--info   { color: var(--color-info);    background: var(--color-info-bg);    border-color: var(--color-info-border);    }
 .status-chip--warning{ color: var(--color-warning); background: var(--color-warning-bg); border-color: var(--color-warning-border); }
+.status-chip--na     { color: var(--color-text-secondary); background: var(--color-surface-2); border-color: var(--color-border); }
 .status-chip__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
 /* ── Badges ────────────────────────────────────────────────────────────────── */

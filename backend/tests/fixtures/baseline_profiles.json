@@ -1,0 +1,1264 @@
+{
+  "04-7 Washers and springs washers.pdf": {
+    "error": "No table found on page 1 (BOM)."
+  },
+  "05-02 Countersinks and counterbores.pdf": {
+    "error": "No table found on page 1 (BOM)."
+  },
+  "1950830513  C  EXCHANGE MODULE WOODEN BOX.pdf": {
+    "bom_count": 9,
+    "profile_count": 9,
+    "profiles": {
+      "14": {
+        "part_number": "14",
+        "description": "",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 6.0,
+            "pitch": 8.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M6X8"
+          },
+          {
+            "nominal": 6.0,
+            "pitch": 3.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M6X3"
+          },
+          {
+            "nominal": 3.0,
+            "pitch": 4.5,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M3X4.5"
+          }
+        ],
+        "hole_patterns": [
+          {
+            "count": 6,
+            "diameter": 7.0,
+            "source": "14"
+          },
+          {
+            "count": 3,
+            "diameter": 4.5,
+            "source": "14"
+          },
+          {
+            "count": 4,
+            "diameter": 3.0,
+            "source": "14"
+          },
+          {
+            "count": 2,
+            "diameter": 51.0,
+            "source": "14"
+          },
+          {
+            "count": 8,
+            "diameter": 6.0,
+            "source": "14"
+          },
+          {
+            "count": 10,
+            "diameter": 18.0,
+            "source": "14"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-18": {
+        "part_number": "1950830513-18",
+        "description": "REST BLOCK DP160&250",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-17": {
+        "part_number": "1950830513-17",
+        "description": "REST BLOCK DP160&250/MB2600",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 4.0,
+            "pitch": 0.7,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M4"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-16": {
+        "part_number": "1950830513-16",
+        "description": "REST BLOCK DP450/DP750/MB4200",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-15": {
+        "part_number": "1950830513-15",
+        "description": "REST BLOCK DP450/DP750/MB4200",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 4.0,
+            "pitch": 0.7,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M4"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-12": {
+        "part_number": "1950830513-12",
+        "description": "TOP COVER",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [
+          {
+            "count": 6,
+            "diameter": 3.0,
+            "source": "1950830513-12"
+          },
+          {
+            "count": 6,
+            "diameter": 7.0,
+            "source": "1950830513-12"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-10": {
+        "part_number": "1950830513-10",
+        "description": "FOAM",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [
+          {
+            "count": 8,
+            "diameter": 16.0,
+            "source": "1950830513-10"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-09": {
+        "part_number": "1950830513-09",
+        "description": "BASE SHEET EPE FOAM",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [
+          {
+            "count": 10,
+            "diameter": 60.0,
+            "source": "1950830513-09"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "1950830513-01": {
+        "part_number": "1950830513-01",
+        "description": "BASE SHEET",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [
+          {
+            "count": 6,
+            "diameter": 3.0,
+            "source": "1950830513-01"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      }
+    }
+  },
+  "TDK040023_Lift aid of IXL1500 stator OP10.pdf": {
+    "bom_count": 9,
+    "profile_count": 6,
+    "profiles": {
+      "TDK040023-A00": {
+        "part_number": "TDK040023-A00",
+        "description": "LIFT AID SHAFT ASM",
+        "gender": "male",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 12.0,
+            "pitch": 1.75,
+            "count": 1,
+            "gender": "male",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M12"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          16.0,
+          51.0,
+          52.0,
+          80.0,
+          2768.0
+        ]
+      },
+      "TDK040023-B00": {
+        "part_number": "TDK040023-B00",
+        "description": "LIFT BRACKET ASM",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          51.0,
+          52.0,
+          80.0,
+          2768.0
+        ]
+      },
+      "TDK040023-C00": {
+        "part_number": "TDK040023-C00",
+        "description": "LIFT BRACKET ASM",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          51.0,
+          52.0,
+          80.0,
+          2768.0
+        ]
+      },
+      "TDK040023-01": {
+        "part_number": "TDK040023-01",
+        "description": "PIN",
+        "gender": "male",
+        "bom_qty": 4,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          16.0
+        ]
+      },
+      "TDK040023-03": {
+        "part_number": "TDK040023-03",
+        "description": "KEY (8X12)",
+        "gender": "female",
+        "bom_qty": 4,
+        "threads": [],
+        "hole_patterns": [
+          {
+            "count": 8,
+            "diameter": 12.0,
+            "source": "TDK040023-03"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          16.0,
+          51.0,
+          52.0,
+          80.0,
+          2768.0
+        ]
+      },
+      "TDK040023-02": {
+        "part_number": "TDK040023-02",
+        "description": "END CAP",
+        "gender": "female",
+        "bom_qty": 2,
+        "threads": [],
+        "hole_patterns": [
+          {
+            "count": 8,
+            "diameter": 12.0,
+            "source": "TDK040023-02"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0
+        ]
+      }
+    }
+  },
+  "TDQ300123  1  GV80 IE4 MOTOR LIFTING FIXTURE.pdf": {
+    "bom_count": 15,
+    "profile_count": 7,
+    "profiles": {
+      "218092451": {
+        "part_number": "218092451",
+        "description": "SCR CAP HD M10X20 MS NI",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 10.0,
+            "pitch": 1.5,
+            "count": 12,
+            "gender": "female",
+            "length": 20.0,
+            "is_clearance": false,
+            "raw": "M10X20"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "B22417318": {
+        "part_number": "B22417318",
+        "description": "SCR CAP HD M8X12 SS",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 6,
+            "gender": "female",
+            "length": 12.0,
+            "is_clearance": false,
+            "raw": "M8X12"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "TDQ300265-01": {
+        "part_number": "TDQ300265-01",
+        "description": "BASE PLATE",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 8.0,
+            "pitch": 1.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M8X1.0"
+          }
+        ],
+        "hole_patterns": [
+          {
+            "count": 2,
+            "diameter": 2.5,
+            "source": "TDQ300265-01"
+          },
+          {
+            "count": 4,
+            "diameter": 11.0,
+            "source": "TDQ300265-01"
+          },
+          {
+            "count": 4,
+            "diameter": 6.4,
+            "source": "TDQ300265-01"
+          },
+          {
+            "count": 12,
+            "diameter": 18.0,
+            "source": "TDQ300265-01"
+          },
+          {
+            "count": 12,
+            "diameter": 10.5,
+            "source": "TDQ300265-01"
+          },
+          {
+            "count": 11,
+            "diameter": 4.0,
+            "source": "TDQ300265-01"
+          },
+          {
+            "count": 2,
+            "diameter": 2.0,
+            "source": "TDQ300265-01"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          2.5,
+          3.0,
+          4.0,
+          5.0,
+          5.1,
+          5.9,
+          6.0,
+          6.4,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          10.5,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          15.0,
+          16.0,
+          18.0,
+          20.0,
+          21.0,
+          25.0,
+          29.0,
+          31.0,
+          35.0,
+          45.0,
+          51.0,
+          54.0,
+          70.0,
+          71.0,
+          74.0,
+          75.0,
+          95.0,
+          101.0,
+          115.0,
+          140.0,
+          180.0,
+          219.0,
+          223.0,
+          297.0,
+          301.0,
+          340.0,
+          380.0,
+          405.0,
+          450.0,
+          495.0,
+          520.0,
+          772.0,
+          2025.0,
+          2768.0
+        ]
+      },
+      "TDQ300265-03": {
+        "part_number": "TDQ300265-03",
+        "description": "HOLDING BED",
+        "gender": "female",
+        "bom_qty": 2,
+        "threads": [
+          {
+            "nominal": 12.0,
+            "pitch": 1.5,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M12X1.5"
+          }
+        ],
+        "hole_patterns": [
+          {
+            "count": 2,
+            "diameter": 15.0,
+            "source": "TDQ300265-03"
+          },
+          {
+            "count": 2,
+            "diameter": 18.0,
+            "source": "TDQ300265-03"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          5.22,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          16.0,
+          17.0,
+          18.0,
+          19.0,
+          22.0,
+          25.0,
+          35.0,
+          40.0,
+          45.0,
+          54.0,
+          70.0,
+          75.0,
+          80.0,
+          91.0,
+          573.0
+        ]
+      },
+      "TDQ300265-02": {
+        "part_number": "TDQ300265-02",
+        "description": "ALUMINUM EXTRUSION REWORK",
+        "gender": "female",
+        "bom_qty": 2,
+        "threads": [
+          {
+            "nominal": 10.0,
+            "pitch": 1.25,
+            "count": 2,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "2XM10X1.25"
+          },
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M8X1.25"
+          },
+          {
+            "nominal": 10.0,
+            "pitch": 1.5,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M10X1.5"
+          }
+        ],
+        "hole_patterns": [
+          {
+            "count": 4,
+            "diameter": 8.4,
+            "source": "TDQ300265-02"
+          },
+          {
+            "count": 8,
+            "diameter": 4.0,
+            "source": "TDQ300265-02"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          5.0,
+          8.4,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          15.0,
+          16.0,
+          25.0,
+          29.0,
+          45.0,
+          51.0,
+          71.0,
+          81.0,
+          90.0,
+          2025.0,
+          2768.0
+        ]
+      },
+      "TDQ300123-A00": {
+        "part_number": "TDQ300123-A00",
+        "description": "CALIBRATION ASSEMBLY LH",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 4.0,
+            "pitch": 10.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M4X10"
+          },
+          {
+            "nominal": 6.0,
+            "pitch": 25.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M6X25"
+          },
+          {
+            "nominal": 10.0,
+            "pitch": 25.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M10X25"
+          },
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M8"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          15.0,
+          16.0,
+          21.0,
+          22.0,
+          29.0,
+          71.0,
+          130.0,
+          305.0,
+          611.0,
+          2025.0,
+          2768.0
+        ]
+      },
+      "TDQ300123-B00": {
+        "part_number": "TDQ300123-B00",
+        "description": "CALIBRATION ASSEMBLY RH",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 4.0,
+            "pitch": 10.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M4X10"
+          },
+          {
+            "nominal": 6.0,
+            "pitch": 25.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M6X25"
+          },
+          {
+            "nominal": 10.0,
+            "pitch": 25.0,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M10X25"
+          },
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M8"
+          },
+          {
+            "nominal": 10.0,
+            "pitch": 1.5,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M10"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          14.0,
+          15.0,
+          16.0,
+          29.0,
+          71.0,
+          130.0,
+          277.0,
+          333.0,
+          444.2,
+          732.1,
+          921.0,
+          2025.0,
+          2768.0
+        ]
+      }
+    }
+  },
+  "TDQ300162  1  FIXTURES FOR HYDRAULIC TOOLING  Released  VIN-WIP.pdf": {
+    "bom_count": 2,
+    "profile_count": 1,
+    "profiles": {
+      "11": {
+        "part_number": "11",
+        "description": "",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      }
+    }
+  },
+  "TDQ300177  1  TIMING TOOL ARM  In Work  VIN-WIP  a00554675 (1).pdf": {
+    "bom_count": 8,
+    "profile_count": 7,
+    "profiles": {
+      "218231413": {
+        "part_number": "218231413",
+        "description": "M8X30 SOC HD CAP SCREW SS",
+        "gender": "male",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 2,
+            "gender": "male",
+            "length": 30.0,
+            "is_clearance": false,
+            "raw": "M8X30"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": []
+      },
+      "TDQ300177-02": {
+        "part_number": "TDQ300177-02",
+        "description": "TIMING TOOL ARM",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 4.0,
+            "pitch": 0.7,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M4X0.7"
+          },
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 4,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "4XM8X1.25"
+          }
+        ],
+        "hole_patterns": [
+          {
+            "count": 4,
+            "diameter": 15.0,
+            "source": "TDQ300177-02"
+          },
+          {
+            "count": 8,
+            "diameter": 4.0,
+            "source": "TDQ300177-02"
+          },
+          {
+            "count": 2,
+            "diameter": 9.0,
+            "source": "TDQ300177-02"
+          },
+          {
+            "count": 9,
+            "diameter": 2.0,
+            "source": "TDQ300177-02"
+          },
+          {
+            "count": 4,
+            "diameter": 8.5,
+            "source": "TDQ300177-02"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          5.0,
+          5.8,
+          6.0,
+          7.0,
+          8.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          13.0,
+          15.0,
+          19.0,
+          20.0,
+          31.0,
+          43.0,
+          45.0,
+          51.0,
+          52.0,
+          68.0,
+          91.0,
+          721.0,
+          2026.0,
+          2768.0
+        ]
+      },
+      "TDQ300177-01": {
+        "part_number": "TDQ300177-01",
+        "description": "BASE PLATE",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 2,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "2XM8X1.25"
+          },
+          {
+            "nominal": 12.0,
+            "pitch": 1.75,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M12X1.75"
+          }
+        ],
+        "hole_patterns": [
+          {
+            "count": 4,
+            "diameter": 15.0,
+            "source": "TDQ300177-01"
+          },
+          {
+            "count": 8,
+            "diameter": 4.0,
+            "source": "TDQ300177-01"
+          },
+          {
+            "count": 2,
+            "diameter": 9.0,
+            "source": "TDQ300177-01"
+          },
+          {
+            "count": 9,
+            "diameter": 2.0,
+            "source": "TDQ300177-01"
+          },
+          {
+            "count": 4,
+            "diameter": 8.5,
+            "source": "TDQ300177-01"
+          }
+        ],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          25.0,
+          27.5,
+          31.0,
+          35.0,
+          60.0,
+          70.0,
+          75.0,
+          85.0,
+          92.5,
+          120.0,
+          224.0,
+          622.0,
+          651.0,
+          721.0,
+          741.0,
+          904.0,
+          932.0
+        ]
+      },
+      "TDQ300177-03": {
+        "part_number": "TDQ300177-03",
+        "description": "TIP",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          1.5,
+          2.0,
+          3.0,
+          4.0,
+          4.5,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          8.5,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          15.0,
+          42.0,
+          45.0,
+          51.0,
+          59.0,
+          75.0,
+          82.0,
+          90.0
+        ]
+      },
+      "TDQ300177-05": {
+        "part_number": "TDQ300177-05",
+        "description": "CLAMP SCREW",
+        "gender": "male",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 12.0,
+            "pitch": 1.75,
+            "count": 1,
+            "gender": "male",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M12X1.75"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          5.0,
+          9.0,
+          10.0,
+          11.0,
+          12.0,
+          20.0,
+          45.0,
+          60.0,
+          70.0,
+          75.0,
+          91.0,
+          2768.0
+        ]
+      },
+      "TDQ300177-04": {
+        "part_number": "TDQ300177-04",
+        "description": "M8 THUMB SCREW",
+        "gender": "male",
+        "bom_qty": 4,
+        "threads": [
+          {
+            "nominal": 8.0,
+            "pitch": 1.25,
+            "count": 1,
+            "gender": "male",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M8X1.25"
+          },
+          {
+            "nominal": 5.0,
+            "pitch": 0.8,
+            "count": 1,
+            "gender": "male",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M5"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          6.5,
+          7.0,
+          8.0,
+          12.0,
+          19.0,
+          25.0,
+          60.0,
+          70.0,
+          2026.0
+        ]
+      },
+      "TDQ300177-06": {
+        "part_number": "TDQ300177-06",
+        "description": "CLAMP TIP",
+        "gender": "female",
+        "bom_qty": 1,
+        "threads": [
+          {
+            "nominal": 12.0,
+            "pitch": 1.75,
+            "count": 1,
+            "gender": "female",
+            "length": null,
+            "is_clearance": false,
+            "raw": "M12X1.75"
+          }
+        ],
+        "hole_patterns": [],
+        "bore_shaft_fits": [],
+        "countersinks": [],
+        "counterbores": [],
+        "washers": [],
+        "linear_dims": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          6.0,
+          7.0,
+          8.0,
+          12.0,
+          19.0,
+          20.0,
+          25.0,
+          51.0,
+          75.0,
+          81.0,
+          91.0,
+          2026.0,
+          2768.0
+        ]
+      }
+    }
+  },
+  "TDS011385 2.pdf": {
+    "error": "Failed to extract BOM rows from page 1."
+  }
+}

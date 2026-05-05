@@ -20,6 +20,7 @@ try:
     from backend.services.drawing_extractor import extract_parts_from_pages, extract_part_materials_from_pages
     from backend.services.matcher import match_bom
     from backend.services.material_validator import validate_materials_for_upload
+    from backend.services.fitment_checker import check_fitment_for_upload
     from backend.services.material_db import (
         get_reference_table,
         save_reference_table,
@@ -32,6 +33,7 @@ except ModuleNotFoundError:
     from services.drawing_extractor import extract_parts_from_pages, extract_part_materials_from_pages
     from services.matcher import match_bom
     from services.material_validator import validate_materials_for_upload
+    from services.fitment_checker import check_fitment_for_upload
     from services.material_db import (
         get_reference_table,
         save_reference_table,
@@ -119,20 +121,42 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)) -> JSONResp
     input_pdf_path.write_bytes(content)
 
     try:
+        print(f"[UPLOAD] Starting processing for job {job_id}")
+        print(f"[UPLOAD] Step 1/5: Extracting BOM from page 1...")
         bom_rows, annotation_context = extract_bom_from_page1(str(input_pdf_path))
+        print(f"[UPLOAD] Step 1/5: ✓ BOM extracted - {len(bom_rows)} items found")
+        
+        print(f"[UPLOAD] Step 2/5: Extracting part details from pages 2+...")
         extracted_part_keys = extract_parts_from_pages(str(input_pdf_path), start_page_index=1)
+        print(f"[UPLOAD] Step 2/5: ✓ Part details extracted - {len(extracted_part_keys)} parts found")
+        
+        print(f"[UPLOAD] Step 3/5: Matching BOM items with extracted parts...")
         bom_results = match_bom(bom_rows=bom_rows, extracted_part_keys=extracted_part_keys)
+        print(f"[UPLOAD] Step 3/5: ✓ BOM matching complete")
+        
+        print(f"[UPLOAD] Step 4/5: Extracting material specifications...")
         part_details = extract_part_materials_from_pages(str(input_pdf_path), start_page_index=1)
+        print(f"[UPLOAD] Step 4/5: ✓ Material specs extracted")
+        
+        print(f"[UPLOAD] Step 5/5: Validating materials against reference table...")
         material_validation = validate_materials_for_upload(part_keys=extracted_part_keys, part_details=part_details)
+        print(f"[UPLOAD] Step 5/5: ✓ Material validation complete")
+
+        # Fitment verification - SKIPPED on initial upload for faster response
+        # User can trigger it separately via /fitment/{job_id} endpoint
+        print(f"[UPLOAD] Fitment check skipped (on-demand only)")
+        fitment_data = {"profiles": {}, "results": [], "summary": {"total": 0, "pass": 0, "fail": 0, "warning": 0}, "assembly_graph": {}}
 
         # Annotation feature disabled:
         # Return the original PDF unchanged while keeping validation results.
+        print(f"[UPLOAD] Creating response PDF...")
         annotated_pdf_path.write_bytes(content)
 
         annotated_pdf_url = str(request.base_url).rstrip("/") + f"/outputs/{job_id}/annotated.pdf"
 
         bom_annotation_positions = []
 
+        print(f"[UPLOAD] ✓ Processing complete for job {job_id}")
         return JSONResponse(
             {
                 "job_id": job_id,
@@ -140,6 +164,10 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)) -> JSONResp
                 "results": bom_results,
                 "bom_annotation_positions": bom_annotation_positions,
                 "material_results": material_validation.get("material_results", []),
+                "fitment_results": fitment_data.get("results", []),
+                "fitment_summary": fitment_data.get("summary", {}),
+                "fitment_profiles": fitment_data.get("profiles", {}),
+                "assembly_graph": fitment_data.get("assembly_graph", {}),
             }
         )
     except Exception as e:
@@ -150,6 +178,46 @@ async def upload_pdf(request: Request, file: UploadFile = File(...)) -> JSONResp
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=f"PDF processing failed: {e}")
+
+
+@app.post("/fitment/{job_id}")
+async def run_fitment_check(job_id: str) -> JSONResponse:
+    """
+    Run fitment validation for a previously uploaded PDF.
+    This is a separate endpoint to avoid slowing down the initial upload.
+    """
+    job_dir = OUTPUTS_DIR / job_id
+    input_pdf_path = job_dir / "input.pdf"
+    
+    if not job_dir.exists() or not input_pdf_path.exists():
+        raise HTTPException(status_code=404, detail="Job not found or PDF has been cleaned up.")
+    
+    try:
+        print(f"[FITMENT] Starting fitment check for job {job_id}")
+        
+        # Re-extract BOM for fitment check
+        print(f"[FITMENT] Step 1/2: Re-extracting BOM...")
+        bom_rows, _ = extract_bom_from_page1(str(input_pdf_path))
+        print(f"[FITMENT] Step 1/2: ✓ BOM extracted - {len(bom_rows)} items")
+        
+        # Run fitment verification
+        print(f"[FITMENT] Step 2/2: Running fitment analysis (this may take 1-2 minutes)...")
+        fitment_data = check_fitment_for_upload(
+            pdf_path=str(input_pdf_path),
+            bom_rows=bom_rows,
+        )
+        print(f"[FITMENT] Step 2/2: ✓ Fitment analysis complete")
+        
+        print(f"[FITMENT] ✓ Fitment check complete for job {job_id}")
+        return JSONResponse({
+            "job_id": job_id,
+            "fitment_results": fitment_data.get("results", []),
+            "fitment_summary": fitment_data.get("summary", {}),
+            "fitment_profiles": fitment_data.get("profiles", {}),
+            "assembly_graph": fitment_data.get("assembly_graph", {}),
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fitment check failed: {e}")
 
 
 # ---------------------------------------------------------------------------

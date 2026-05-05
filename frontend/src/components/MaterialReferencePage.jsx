@@ -285,7 +285,7 @@ export default function MaterialReferencePage() {
       </div>
 
       {/* ── Main content ── */}
-      <main style={{ flex: 1, maxWidth: 1280, margin: "0 auto", width: "100%", padding: "16px 24px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+      <main style={{ flex: 1, minHeight: 0, maxWidth: 1280, margin: "0 auto", width: "100%", padding: "16px 24px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
 
         {/* Toolbar */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -309,14 +309,14 @@ export default function MaterialReferencePage() {
         </div>
 
         {/* Table card */}
-        <div className="card" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div className="card" style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
           {loading ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "64px 24px", color: "var(--color-text-secondary)", fontSize: "var(--text-sm)" }}>
               <span style={{ display: "inline-block", width: 18, height: 18, borderRadius: "50%", border: "2px solid var(--color-border)", borderTopColor: "var(--color-brand)", animation: "spin 0.7s linear infinite" }} />
               Loading reference table…
             </div>
           ) : (
-            <div style={{ overflow: "auto", flex: 1 }}>
+            <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               <table className="data-table">
                 <thead>
                   <tr>
